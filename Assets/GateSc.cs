@@ -16,6 +16,9 @@ public class GateSc : MonoBehaviour
     public Function GateFunction;
     [EnumToggleButtons]
     public Effect GateEffect;
+
+    [HorizontalGroup("Group1", LabelWidth = 85)]
+    public Color colorPositive, colorNegative;
     public enum Function
     {
         Width, Height
@@ -64,16 +67,16 @@ public class GateSc : MonoBehaviour
             transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Text>().text = "+" + gateValue.ToString();
             transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<Text>().text = "< >";
 
-            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = new Color32(0x2F, 0xBF, 0xFF, 0xFF);
-            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0x2F, 0xBF, 0xFF, 0xFF);
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = colorPositive;
+            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = colorPositive;
         }
         else if (GateFunction == Function.Width && GateEffect == Effect.Negative)
         {
             transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Text>().text = "-" + gateValue.ToString();
             transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<Text>().text = "> <";
 
-            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = new Color32(0xFF, 0x36, 0x36, 0xFF);
-            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0xFF, 0x36, 0x36, 0xFF);
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = colorNegative;
+            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = colorNegative;
         }
 
         else if (GateFunction == Function.Height && GateEffect == Effect.Positive)
@@ -83,8 +86,8 @@ public class GateSc : MonoBehaviour
 
             transform.GetChild(0).GetChild(0).GetChild(3).rotation = Quaternion.Euler(new Vector3(0,0,90f));
 
-            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = new Color32(0x2F, 0xBF, 0xFF, 0xFF);
-            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0x2F, 0xBF, 0xFF, 0xFF);
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = colorPositive;
+            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = colorPositive;
 
         }
         else if (GateFunction == Function.Height && GateEffect == Effect.Negative)
@@ -94,8 +97,8 @@ public class GateSc : MonoBehaviour
 
             transform.GetChild(0).GetChild(0).GetChild(3).rotation = Quaternion.Euler(new Vector3(0, 0, 90f));
 
-            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = new Color32(0xFF, 0x36, 0x36, 0xFF);
-            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0xFF, 0x36, 0x36, 0xFF);
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = colorNegative;
+            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = colorNegative;
         }
     }
 }

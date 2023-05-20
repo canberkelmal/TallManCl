@@ -512,10 +512,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gateValue: 25
-  bgBlue: {fileID: 2800000, guid: 5d448ea6ff4fad24fa33e610f7c1662b, type: 3}
-  bgRed: {fileID: 2800000, guid: dbda07fd50d707f4595e7b37fe18d12e, type: 3}
   GateFunction: 0
   GateEffect: 0
+  colorPositive: {r: 0.18431373, g: 0.7490196, b: 1, a: 1}
+  colorNegative: {r: 1, g: 0.21176471, b: 0.21176471, a: 1}
 --- !u!1 &928979921632087155
 GameObject:
   m_ObjectHideFlags: 0
