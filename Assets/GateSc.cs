@@ -4,6 +4,7 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 using static Sirenix.OdinInspector.Editor.Internal.FastDeepCopier;
 using Unity.VisualScripting;
+using UnityEngine.UI;
 
 public class GateSc : MonoBehaviour
 {
@@ -11,6 +12,8 @@ public class GateSc : MonoBehaviour
 
     GameManager gM;
 
+    [AssetsOnly]
+    public Texture bgBlue, bgRed;
 
     [EnumToggleButtons]
     public Function GateFunction;
@@ -26,15 +29,11 @@ public class GateSc : MonoBehaviour
     }
 
 
-    // Start is called before the first frame update 
-    void Start()
-    {
-        gM = GameObject.Find("GameManager").GetComponent<GameManager>();
-    }
 
-    // Update is called once per frame
-    void Update()
+    void Awake()
     {
+        gM = GameObject.Find("Game Manager").GetComponent<GameManager>();
+        SetGateUIs();
     }
 
     private void OnTriggerEnter(Collider other)
@@ -49,6 +48,7 @@ public class GateSc : MonoBehaviour
             {
                 gM.ChangePlayerWidth(false, gateValue);
             }
+
             else if (GateFunction == Function.Height && GateEffect == Effect.Positive)
             {
                 gM.ChangePlayerHeight(true, gateValue);
@@ -58,6 +58,49 @@ public class GateSc : MonoBehaviour
                 gM.ChangePlayerHeight(false, gateValue);
             }
 
+        }
+    }
+
+    void SetGateUIs()
+    {
+        //transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<Text>().text = GateFunction == Function.Width && GateEffect == Effect.Positive ?
+        if (GateFunction == Function.Width && GateEffect == Effect.Positive)
+        {
+            transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Text>().text = "+" + gateValue.ToString();
+            transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<Text>().text = "< >";
+
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().texture = bgBlue;
+            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0x2F, 0xBF, 0xFF, 0xFF);
+        }
+        else if (GateFunction == Function.Width && GateEffect == Effect.Negative)
+        {
+            transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Text>().text = "-" + gateValue.ToString();
+            transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<Text>().text = "> <";
+
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().texture = bgRed;
+            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0xFF, 0x36, 0x36, 0xFF);
+        }
+
+        else if (GateFunction == Function.Height && GateEffect == Effect.Positive)
+        {
+            transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Text>().text = "+" + gateValue.ToString();
+            transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<Text>().text = ">";
+
+            transform.GetChild(0).GetChild(0).GetChild(3).rotation = Quaternion.Euler(new Vector3(0,0,90f));
+
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().texture = bgBlue;
+            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0x2F, 0xBF, 0xFF, 0xFF);
+
+        }
+        else if (GateFunction == Function.Height && GateEffect == Effect.Negative)
+        {
+            transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Text>().text = "-" + gateValue.ToString();
+            transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<Text>().text = "<";
+
+            transform.GetChild(0).GetChild(0).GetChild(3).rotation = Quaternion.Euler(new Vector3(0, 0, 90f));
+
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().texture = bgRed;
+            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0xFF, 0x36, 0x36, 0xFF);
         }
     }
 }

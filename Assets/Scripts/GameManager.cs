@@ -104,10 +104,36 @@ public class GameManager : MonoBehaviour
 
     public void ChangePlayerWidth(bool increase, float value)
     {
-
+        if(increase)
+        {
+            player.transform.GetChild(1).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
+            player.transform.GetChild(2).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
+        }
+        else if(player.transform.GetChild(1).localScale.x - value * 0.01f >= 0.2f)
+        {
+            player.transform.GetChild(1).localScale -= new Vector3(value * 0.01f, 0, value * 0.01f);
+            player.transform.GetChild(2).localScale -= new Vector3(value * 0.01f, 0, value * 0.01f);
+        }
+        else
+        {
+            player.transform.GetChild(1).localScale = new Vector3(0.2f, player.transform.GetChild(1).localScale.y, 0.2f);
+            player.transform.GetChild(2).localScale = new Vector3(0.2f, player.transform.GetChild(2).localScale.y, 0.2f);
+        }
     }
     public void ChangePlayerHeight(bool increase, float value)
     {
+        if (increase)
+        {
+            player.transform.GetChild(1).localScale += new Vector3(0, value * 0.01f, 0);
+        }
+        else if (player.transform.GetChild(1).localScale.y - value * 0.01f >= 1f)
+        {
+            player.transform.GetChild(1).localScale -= new Vector3(0, value * 0.01f, 0);
+        }
+        else
+        {
+            player.transform.GetChild(1).localScale = new Vector3(player.transform.GetChild(1).localScale.x, 1, player.transform.GetChild(1).localScale.z);
+        }
 
     }
 }
