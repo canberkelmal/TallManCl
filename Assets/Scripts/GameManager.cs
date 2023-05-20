@@ -101,4 +101,13 @@ public class GameManager : MonoBehaviour
     {
         player.transform.LookAt(director.transform.position);
     }
+
+    public void ChangePlayerWidth(bool increase, float value)
+    {
+
+    }
+    public void ChangePlayerHeight(bool increase, float value)
+    {
+
+    }
 }
