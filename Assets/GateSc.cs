@@ -8,12 +8,9 @@ using UnityEngine.UI;
 
 public class GateSc : MonoBehaviour
 {
-    public float gateValue;
-
     GameManager gM;
 
-    [AssetsOnly]
-    public Texture bgBlue, bgRed;
+    public float gateValue;
 
     [EnumToggleButtons]
     public Function GateFunction;
@@ -27,7 +24,6 @@ public class GateSc : MonoBehaviour
     {
         Positive, Negative
     }
-
 
 
     void Awake()
@@ -63,13 +59,12 @@ public class GateSc : MonoBehaviour
 
     void SetGateUIs()
     {
-        //transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<Text>().text = GateFunction == Function.Width && GateEffect == Effect.Positive ?
         if (GateFunction == Function.Width && GateEffect == Effect.Positive)
         {
             transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Text>().text = "+" + gateValue.ToString();
             transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<Text>().text = "< >";
 
-            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().texture = bgBlue;
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = new Color32(0x2F, 0xBF, 0xFF, 0xFF);
             transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0x2F, 0xBF, 0xFF, 0xFF);
         }
         else if (GateFunction == Function.Width && GateEffect == Effect.Negative)
@@ -77,7 +72,7 @@ public class GateSc : MonoBehaviour
             transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Text>().text = "-" + gateValue.ToString();
             transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<Text>().text = "> <";
 
-            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().texture = bgRed;
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = new Color32(0xFF, 0x36, 0x36, 0xFF);
             transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0xFF, 0x36, 0x36, 0xFF);
         }
 
@@ -88,7 +83,7 @@ public class GateSc : MonoBehaviour
 
             transform.GetChild(0).GetChild(0).GetChild(3).rotation = Quaternion.Euler(new Vector3(0,0,90f));
 
-            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().texture = bgBlue;
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = new Color32(0x2F, 0xBF, 0xFF, 0xFF);
             transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0x2F, 0xBF, 0xFF, 0xFF);
 
         }
@@ -99,7 +94,7 @@ public class GateSc : MonoBehaviour
 
             transform.GetChild(0).GetChild(0).GetChild(3).rotation = Quaternion.Euler(new Vector3(0, 0, 90f));
 
-            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().texture = bgRed;
+            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<RawImage>().color = new Color32(0xFF, 0x36, 0x36, 0xFF);
             transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<RawImage>().color = new Color32(0xFF, 0x36, 0x36, 0xFF);
         }
     }

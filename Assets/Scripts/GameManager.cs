@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Sirenix.OdinInspector;
 using static Sirenix.OdinInspector.Editor.Internal.FastDeepCopier;
 using Unity.VisualScripting;
@@ -24,7 +25,7 @@ public class GameManager : MonoBehaviour
     [Title("Scene Objects")]
     [TabGroup("GameObjects")]
     [SceneObjectsOnly]
-    public GameObject camera;
+    public GameObject cam;
     [TabGroup("GameObjects")]
     [SceneObjectsOnly]
     public GameObject player;
@@ -34,11 +35,11 @@ public class GameManager : MonoBehaviour
 
     float directorOffsZ = 1f;
     float playerCurrentSpeed = 0f;
-    float cameraOffsZ;
+    float cameraOffsZ; 
 
     void Start()
     {
-        cameraOffsZ = player.transform.position.z - camera.transform.position.z;
+        cameraOffsZ = player.transform.position.z - cam.transform.position.z;
     }
 
     // Update is called once per frame
@@ -54,6 +55,11 @@ public class GameManager : MonoBehaviour
             director.transform.position = new Vector3(director.transform.position.x, director.transform.position.y, player.transform.position.z + directorOffsZ);
             UpdatePlayerRotationY();
             MovePlayer(false);
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            Restart();
         }
     }
     void UpdateDirectorPositionX()
@@ -89,12 +95,8 @@ public class GameManager : MonoBehaviour
         }
         playerCurrentSpeed = Mathf.Clamp(playerCurrentSpeed, 0f, playerMaxSpeed);
         player.transform.position += player.transform.forward * playerCurrentSpeed * Time.deltaTime;
-        MoveCamera();
-    }
 
-    void MoveCamera()
-    {
-        camera.transform.position = new Vector3(player.transform.position.x, camera.transform.position.y, player.transform.position.z - cameraOffsZ);
+        MoveCamera();
     }
 
     void UpdatePlayerRotationY()
@@ -134,6 +136,16 @@ public class GameManager : MonoBehaviour
         {
             player.transform.GetChild(1).localScale = new Vector3(player.transform.GetChild(1).localScale.x, 1, player.transform.GetChild(1).localScale.z);
         }
+    }
 
+    void MoveCamera()
+    {
+        cam.transform.position = new Vector3(player.transform.position.x, cam.transform.position.y, player.transform.position.z - cameraOffsZ);
+    }
+
+    // Reload the current scene to restart the game
+    public void Restart()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
