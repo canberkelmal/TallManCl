@@ -6,6 +6,8 @@ using Sirenix.OdinInspector;
 using static Sirenix.OdinInspector.Editor.Internal.FastDeepCopier;
 using Unity.VisualScripting;
 using UnityEngine.UIElements;
+using DG.Tweening;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class GameManager : MonoBehaviour
 {
@@ -20,7 +22,15 @@ public class GameManager : MonoBehaviour
     public float xMax = 1f;
     [TabGroup("GamePlay")]
     public float xMin = 1f;
+    [TabGroup("GamePlay")]
+    public float playerJumpPower = 1f;
+    [TabGroup("GamePlay")]
+    public float playerJumpDur = 0.8f;
 
+
+    [Title("Camera")]
+    [TabGroup("GameSettings")]
+    public float camMoveSens = 1f;
 
 
     [Title("Scene Objects")]
@@ -44,6 +54,11 @@ public class GameManager : MonoBehaviour
     public float playerColorAnimDur = 0.5f;
     [TabGroup("Animations")]
     public Color playerColorPositive, playerColorNegative;
+    [Title("Player hit and lose part")]
+    [TabGroup("Animations")]
+    public float brokenPartForce = 1f;
+
+    public bool controller = true;
 
     Color playerStartColor, playerTargetColor, playerCurrentColor, playerMainColor;
     float playerColorElapsedT = 0f;
@@ -52,6 +67,7 @@ public class GameManager : MonoBehaviour
     float directorOffsZ = 1f;
     float playerCurrentSpeed = 0f;
     float cameraOffsZ;
+    Vector3 camOffset;
 
     void Start()
     {
@@ -59,17 +75,18 @@ public class GameManager : MonoBehaviour
         playerStartColor = playerMainColor;
 
         cameraOffsZ = player.transform.position.z - cam.transform.position.z;
+        camOffset = player.transform.position - cam.transform.position;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && controller)
         {
             UpdateDirectorPositionX();
             MovePlayer(true);
         }
-        else if(playerCurrentSpeed > 0)
+        else if(playerCurrentSpeed > 0 && controller)
         {
             director.transform.position = new Vector3(director.transform.position.x, director.transform.position.y, player.transform.position.z + directorOffsZ);
             UpdatePlayerRotationY();
@@ -104,10 +121,34 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        MoveCamera();
+
         if (Input.GetKeyDown(KeyCode.R))
         {
             Restart();
         }
+    }
+
+    public void HitPlayerAt(Vector3 hitPoint)
+    {
+        GameObject brokenPart = Instantiate(player.transform.GetChild(1).gameObject, hitPoint, Quaternion.identity);
+        brokenPart.transform.localScale = new Vector3(brokenPart.transform.localScale.x, 0.5f, brokenPart.transform.localScale.z);
+        brokenPart.AddComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
+        //brokenPart.GetComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
+        brokenPart.transform.DORotate(new Vector3(179f, 0, 179f), 3.0f);
+    }
+
+    public void JumpPlayerTo(Vector3 jumpPoint)
+    {
+        Vector3 targetPoint = new Vector3 (jumpPoint.x, player.transform.position.y, jumpPoint.z);
+        controller = false;
+        director.transform.position = targetPoint;
+        player.transform.DOJump(targetPoint, playerJumpPower, 1, playerJumpDur).OnComplete(WaitForJump);
+    }
+
+    void WaitForJump()
+    {
+        controller = true;
     }
 
     void SetColorAnimTrig()
@@ -171,7 +212,6 @@ public class GameManager : MonoBehaviour
         playerCurrentSpeed = Mathf.Clamp(playerCurrentSpeed, 0f, playerMaxSpeed);
         player.transform.position += player.transform.forward * playerCurrentSpeed * Time.deltaTime;
 
-        MoveCamera();
     }
 
     void UpdatePlayerRotationY()
@@ -228,7 +268,9 @@ public class GameManager : MonoBehaviour
 
     void MoveCamera()
     {
-        cam.transform.position = new Vector3(player.transform.position.x, cam.transform.position.y, player.transform.position.z - cameraOffsZ);
+        //Vector3 camTargetPoint = new Vector3(player.transform.position.x, cam.transform.position.y, player.transform.position.z - cameraOffsZ);
+        Vector3 camTargetPoint = player.transform.position - camOffset;
+        cam.transform.position = Vector3.Lerp(cam.transform.position, camTargetPoint, camMoveSens * Time.deltaTime);
     }
 
     // Reload the current scene to restart the game
