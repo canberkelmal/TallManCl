@@ -53,14 +53,16 @@ public class GameManager : MonoBehaviour
     [TabGroup("Animations")]
     public float playerColorAnimDur = 0.5f;
     [TabGroup("Animations")]
-    public Color playerColorPositive, playerColorNegative;
+    public Color playerColorPositive, playerColorNegative, playerMainColor;
     [Title("Player hit and lose part")]
     [TabGroup("Animations")]
     public float brokenPartForce = 1f;
 
     public bool controller = true;
+    float jumpStartPlayerY = 1.5f;
+    DG.Tweening.Sequence jumpTweener;
 
-    Color playerStartColor, playerTargetColor, playerCurrentColor, playerMainColor;
+    Color playerStartColor, playerTargetColor, playerCurrentColor;
     float playerColorElapsedT = 0f;
     bool isPlayerColorAnimating = false, playerColorAnimatingPhase = false;
 
@@ -71,7 +73,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        playerMainColor = playerMat.color;
+        playerMat.color = playerMainColor;
         playerStartColor = playerMainColor;
 
         cameraOffsZ = player.transform.position.z - cam.transform.position.z;
@@ -120,6 +122,10 @@ public class GameManager : MonoBehaviour
                 SetPlayerColor(playerMainColor);
             }
         }
+        if (jumpTweener != null && player.transform.position.y <= jumpStartPlayerY-0.05f)
+        {
+            WaitForJump();
+        }
 
         MoveCamera();
 
@@ -137,20 +143,23 @@ public class GameManager : MonoBehaviour
         brokenPart.AddComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
         //brokenPart.GetComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
         brokenPart.transform.DORotate(new Vector3(179f, 0, 179f), 3.0f);
-        Destroy(brokenPart, 3);
+        Destroy(brokenPart, 3f);
     }
 
     public void JumpPlayerTo(Vector3 jumpPoint)
     {
-        Vector3 targetPoint = new Vector3 (jumpPoint.x, player.transform.position.y, jumpPoint.z);
+        jumpStartPlayerY = player.transform.position.y;
+        //Vector3 targetPoint = new Vector3 (jumpPoint.x, player.transform.position.y, jumpPoint.z);
         controller = false;
-        director.transform.position = targetPoint;
-        player.transform.DOJump(targetPoint, playerJumpPower, 1, playerJumpDur).OnComplete(WaitForJump);
+        jumpTweener = player.transform.DOJump(jumpPoint, playerJumpPower, 1, playerJumpDur);
     }
 
     void WaitForJump()
     {
+        jumpTweener.Kill();
         controller = true;
+        director.transform.position = new Vector3(director.transform.position.x, director.transform.position.y, player.transform.position.z + directorOffsZ);
+        player.transform.position = new Vector3(player.transform.position.x, jumpStartPlayerY, player.transform.position.z);
     }
 
     void SetColorAnimTrig()
