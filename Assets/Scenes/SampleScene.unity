@@ -2086,6 +2086,10 @@ MonoBehaviour:
   cam: {fileID: 330585543}
   player: {fileID: 3360899600779290112}
   director: {fileID: 1240933564}
+  playerMat: {fileID: 2100000, guid: e72eaf4a9d48e2545a1d6a1d4fe3582e, type: 2}
+  playerColorAnimDur: 0.2
+  playerColorPositive: {r: 0.07006645, g: 1, b: 0, a: 1}
+  playerColorNegative: {r: 1, g: 0.21176471, b: 0.21176471, a: 1}
 --- !u!4 &614865626
 Transform:
   m_ObjectHideFlags: 0

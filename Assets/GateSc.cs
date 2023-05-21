@@ -57,7 +57,13 @@ public class GateSc : MonoBehaviour
                 gM.ChangePlayerHeight(false, gateValue);
             }
 
+            DestroyGate();
         }
+    }
+
+    void DestroyGate()
+    {
+        Destroy(gameObject);
     }
 
     void SetGateUIs()

@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using Sirenix.OdinInspector;
 using static Sirenix.OdinInspector.Editor.Internal.FastDeepCopier;
 using Unity.VisualScripting;
+using UnityEngine.UIElements;
 
 public class GameManager : MonoBehaviour
 {
@@ -23,22 +24,40 @@ public class GameManager : MonoBehaviour
 
 
     [Title("Scene Objects")]
-    [TabGroup("GameObjects")]
+    [TabGroup("Objects")]
     [SceneObjectsOnly]
     public GameObject cam;
-    [TabGroup("GameObjects")]
+    [TabGroup("Objects")]
     [SceneObjectsOnly]
     public GameObject player;
-    [TabGroup("GameObjects")]
+    [TabGroup("Objects")]
     [SceneObjectsOnly]
     public GameObject director;
+    [Title("Materials")]
+    [TabGroup("Objects")]
+    [AssetsOnly]
+    public Material playerMat;
+
+
+    [Title("Player color change")]
+    [TabGroup("Animations")]
+    public float playerColorAnimDur = 0.5f;
+    [TabGroup("Animations")]
+    public Color playerColorPositive, playerColorNegative;
+
+    Color playerStartColor, playerTargetColor, playerCurrentColor, playerMainColor;
+    float playerColorElapsedT = 0f;
+    bool isPlayerColorAnimating = false, playerColorAnimatingPhase = false;
 
     float directorOffsZ = 1f;
     float playerCurrentSpeed = 0f;
-    float cameraOffsZ; 
+    float cameraOffsZ;
 
     void Start()
     {
+        playerMainColor = playerMat.color;
+        playerStartColor = playerMainColor;
+
         cameraOffsZ = player.transform.position.z - cam.transform.position.z;
     }
 
@@ -57,11 +76,67 @@ public class GameManager : MonoBehaviour
             MovePlayer(false);
         }
 
+        if(isPlayerColorAnimating)
+        {
+            playerColorElapsedT += Time.deltaTime;
+            float t = Mathf.Clamp01(playerColorElapsedT / playerColorAnimDur);
+
+            playerCurrentColor = Color.Lerp(playerStartColor, playerTargetColor, t);
+            //player.GetComponent<Renderer>().material.color = playerCurrentColor;
+            SetPlayerColor(playerCurrentColor);
+            if (t >= 1f && !playerColorAnimatingPhase)
+            {
+                playerStartColor = playerCurrentColor;
+                playerTargetColor = playerMainColor;
+                playerColorElapsedT = 0f;
+                playerColorAnimatingPhase = true;
+
+                isPlayerColorAnimating = false;
+                Invoke("SetColorAnimTrig", playerColorAnimDur);
+            }
+            else if(t >= 1f && playerColorAnimatingPhase)
+            {
+                isPlayerColorAnimating = false;
+                playerColorAnimatingPhase = false;
+                playerColorElapsedT = 0f;
+                //player.GetComponent<Renderer>().material.color = playerMainColor;
+                SetPlayerColor(playerMainColor);
+            }
+        }
+
         if (Input.GetKeyDown(KeyCode.R))
         {
             Restart();
         }
     }
+
+    void SetColorAnimTrig()
+    {
+        isPlayerColorAnimating = true;
+    }
+
+    void StartPlayerColorAnim(bool positive)
+    {
+        if(positive)
+        {
+            playerTargetColor = playerColorPositive;
+            playerStartColor = playerMainColor;
+            isPlayerColorAnimating = true;
+        }
+        else
+        {
+            playerTargetColor = playerColorNegative;
+            playerStartColor = playerMainColor;
+            isPlayerColorAnimating = true;
+        }
+    }
+
+    void SetPlayerColor(Color setColor)
+    {
+        playerMat.color = setColor;
+    }
+
+
     void UpdateDirectorPositionX()
     {
 
@@ -110,31 +185,44 @@ public class GameManager : MonoBehaviour
         {
             player.transform.GetChild(1).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
             player.transform.GetChild(2).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
+
+            StartPlayerColorAnim(increase);
         }
         else if(player.transform.GetChild(1).localScale.x - value * 0.01f >= 0.2f)
         {
             player.transform.GetChild(1).localScale -= new Vector3(value * 0.01f, 0, value * 0.01f);
             player.transform.GetChild(2).localScale -= new Vector3(value * 0.01f, 0, value * 0.01f);
+
+            StartPlayerColorAnim(increase);
         }
         else
         {
             player.transform.GetChild(1).localScale = new Vector3(0.2f, player.transform.GetChild(1).localScale.y, 0.2f);
             player.transform.GetChild(2).localScale = new Vector3(0.2f, player.transform.GetChild(2).localScale.y, 0.2f);
+
+            StartPlayerColorAnim(increase);
         }
+
     }
     public void ChangePlayerHeight(bool increase, float value)
     {
         if (increase)
         {
             player.transform.GetChild(1).localScale += new Vector3(0, value * 0.01f, 0);
+
+            StartPlayerColorAnim(increase);
         }
         else if (player.transform.GetChild(1).localScale.y - value * 0.01f >= 1f)
         {
             player.transform.GetChild(1).localScale -= new Vector3(0, value * 0.01f, 0);
+
+            StartPlayerColorAnim(increase);
         }
         else
         {
             player.transform.GetChild(1).localScale = new Vector3(player.transform.GetChild(1).localScale.x, 1, player.transform.GetChild(1).localScale.z);
+
+            StartPlayerColorAnim(increase);
         }
     }
 
