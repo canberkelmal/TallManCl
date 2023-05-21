@@ -133,9 +133,11 @@ public class GameManager : MonoBehaviour
     {
         GameObject brokenPart = Instantiate(player.transform.GetChild(1).gameObject, hitPoint, Quaternion.identity);
         brokenPart.transform.localScale = new Vector3(brokenPart.transform.localScale.x, 0.5f, brokenPart.transform.localScale.z);
+        ChangePlayerHeight(false, 50f);
         brokenPart.AddComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
         //brokenPart.GetComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
         brokenPart.transform.DORotate(new Vector3(179f, 0, 179f), 3.0f);
+        Destroy(brokenPart, 3);
     }
 
     public void JumpPlayerTo(Vector3 jumpPoint)
