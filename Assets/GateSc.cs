@@ -5,12 +5,18 @@ using Sirenix.OdinInspector;
 using static Sirenix.OdinInspector.Editor.Internal.FastDeepCopier;
 using Unity.VisualScripting;
 using UnityEngine.UI;
+using System;
 
 public class GateSc : MonoBehaviour
 {
     GameManager gM;
 
     public float gateValue;
+    public bool isMoving = false;
+
+    bool movingRight = true;
+    Vector3 startPos, rightPos, leftPos;
+
 
     [EnumToggleButtons]
     public Function GateFunction;
@@ -33,6 +39,31 @@ public class GateSc : MonoBehaviour
     {
         gM = GameObject.Find("Game Manager").GetComponent<GameManager>();
         SetGateUIs();
+        startPos = transform.position;
+        rightPos = startPos + Vector3.right*6f;
+        leftPos = startPos + Vector3.left * 6f;
+    }
+
+    void Update()
+    {
+        if(isMoving)
+        {
+            SlideTheGate();
+        }
+    }
+
+    private void SlideTheGate()
+    {
+        Vector3 target = movingRight ? rightPos : leftPos;
+        transform.position = Vector3.Lerp(transform.position, target, gM.doorSlideSens * Time.deltaTime);
+        if(transform.position.x > 2.8f)
+        {
+            movingRight = false;
+        }
+        else if(transform.position.x < -2.8f)
+        {
+            movingRight = true;
+        }
     }
 
     private void OnTriggerEnter(Collider other)

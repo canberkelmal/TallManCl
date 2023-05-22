@@ -2418,6 +2418,7 @@ MonoBehaviour:
   playerColorNegative: {r: 1, g: 0.21176471, b: 0.21176471, a: 1}
   playerMainColor: {r: 1, g: 0.54901963, b: 0, a: 1}
   brokenPartForce: 4
+  doorSlideSens: 0.5
   controller: 1
 --- !u!4 &614865626
 Transform:
@@ -7319,6 +7320,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2752592751032843376, guid: 2b21b8879ba6ed24a94cd9d615ed3121,
+        type: 3}
+      propertyPath: isMoving
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2752592751032843376, guid: 2b21b8879ba6ed24a94cd9d615ed3121,
         type: 3}

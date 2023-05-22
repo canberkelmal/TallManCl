@@ -57,6 +57,9 @@ public class GameManager : MonoBehaviour
     [Title("Player hit and lose part")]
     [TabGroup("Animations")]
     public float brokenPartForce = 1f;
+    [Title("Door")]
+    [TabGroup("Animations")]
+    public float doorSlideSens = 1f;
 
     public bool controller = true;
     float jumpStartPlayerY = 1.5f;
