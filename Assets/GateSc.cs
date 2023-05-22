@@ -13,6 +13,9 @@ public class GateSc : MonoBehaviour
 
     public float gateValue;
     public bool isMoving = false;
+    public float gateTarget = 5f;
+    public float gateStopLimit = 2.8f;
+
 
     bool movingRight = true;
     Vector3 startPos, rightPos, leftPos;
@@ -40,8 +43,8 @@ public class GateSc : MonoBehaviour
         gM = GameObject.Find("Game Manager").GetComponent<GameManager>();
         SetGateUIs();
         startPos = transform.position;
-        rightPos = startPos + Vector3.right*6f;
-        leftPos = startPos + Vector3.left * 6f;
+        rightPos = new Vector3(gateTarget, startPos.y, startPos.z);
+        leftPos = new Vector3(-gateTarget, startPos.y, startPos.z);
     }
 
     void Update()
@@ -56,11 +59,11 @@ public class GateSc : MonoBehaviour
     {
         Vector3 target = movingRight ? rightPos : leftPos;
         transform.position = Vector3.Lerp(transform.position, target, gM.doorSlideSens * Time.deltaTime);
-        if(transform.position.x > 2.8f)
+        if(transform.position.x > gateStopLimit)
         {
             movingRight = false;
         }
-        else if(transform.position.x < -2.8f)
+        else if(transform.position.x < -gateStopLimit)
         {
             movingRight = true;
         }
