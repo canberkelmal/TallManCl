@@ -14,7 +14,7 @@ public class JumpSc : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            gM.JumpPlayerTo(transform.GetChild(0).position);
+            gM.JumpPlayerTo(transform.parent.GetChild(1).position);
             //Destroy(gameObject);
         }
     }
