@@ -8,6 +8,7 @@ using Unity.VisualScripting;
 using UnityEngine.UIElements;
 using DG.Tweening;
 using static UnityEditor.Experimental.GraphView.GraphView;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -43,10 +44,17 @@ public class GameManager : MonoBehaviour
     [TabGroup("Objects")]
     [SceneObjectsOnly]
     public GameObject director;
+    [TabGroup("Objects")]
+    [SceneObjectsOnly]
+    public GameObject diaFrame;
     [Title("Materials")]
     [TabGroup("Objects")]
     [AssetsOnly]
     public Material playerMat;
+    [Title("Particles")]
+    [TabGroup("Objects")]
+    [AssetsOnly]
+    public GameObject takeDiaParticle;
 
 
     [Title("Player color change")]
@@ -60,6 +68,9 @@ public class GameManager : MonoBehaviour
     [Title("Door")]
     [TabGroup("Animations")]
     public float doorSlideSens = 1f;
+
+    int diaCount;
+    Vector3 diaFrameDefScale;
 
     public bool controller = true;
     float jumpStartPlayerY = 1.5f;
@@ -81,6 +92,10 @@ public class GameManager : MonoBehaviour
 
         cameraOffsZ = player.transform.position.z - cam.transform.position.z;
         camOffset = player.transform.position - cam.transform.position;
+
+        diaCount = PlayerPrefs.GetInt("diaCount", 0);
+        diaFrame.transform.GetChild(1).GetComponent<Text>().text = diaCount.ToString();
+        diaFrameDefScale = diaFrame.transform.localScale;
     }
 
     // Update is called once per frame
@@ -138,6 +153,23 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void TakeDiamond(Vector3 diaPos)
+    {
+        diaCount++;
+        PlayerPrefs.SetInt("diaCount", diaCount);
+
+        GameObject takeEffect = Instantiate(takeDiaParticle, diaPos, Quaternion.identity);
+        Destroy(takeEffect, 1f);
+        
+        diaFrame.transform.GetChild(1).GetComponent<Text>().text = diaCount.ToString();
+
+        diaFrame.transform.DOScale(diaFrameDefScale * 1.5f, 0.15f).OnComplete(SetDiaFrameScaleDef);
+    }
+    void SetDiaFrameScaleDef()
+    {
+        diaFrame.transform.DOScale(diaFrameDefScale, 0.15f);
+    }
+
     public void HitPlayerAt(Vector3 hitPoint)
     {
         GameObject brokenPart = Instantiate(player.transform.GetChild(1).gameObject, hitPoint, Quaternion.identity);
@@ -149,12 +181,18 @@ public class GameManager : MonoBehaviour
         Destroy(brokenPart, 3f);
     }
 
-    public void JumpPlayerTo(Vector3 jumpPoint)
+    public void JumpPlayerTo(Vector3 jumpPoint, bool isEnd)
     {
+        if (isEnd)
+        {
+
+        }
+        else
+        {
         jumpStartPlayerY = player.transform.position.y;
-        //Vector3 targetPoint = new Vector3 (jumpPoint.x, player.transform.position.y, jumpPoint.z);
         controller = false;
         jumpTweener = player.transform.DOJump(jumpPoint, playerJumpPower, 1, playerJumpDur);
+        }
     }
 
     void WaitForJump()

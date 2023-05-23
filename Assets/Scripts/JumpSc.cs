@@ -5,6 +5,7 @@ using UnityEngine;
 public class JumpSc : MonoBehaviour
 {
     GameManager gM;
+    public bool isEnd = false;
     void Awake()
     {
         gM = GameObject.Find("Game Manager").GetComponent<GameManager>();
@@ -14,7 +15,7 @@ public class JumpSc : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            gM.JumpPlayerTo(transform.parent.GetChild(1).position);
+            gM.JumpPlayerTo(transform.parent.GetChild(1).position, isEnd);
             //Destroy(gameObject);
         }
     }
