@@ -9,6 +9,7 @@ using UnityEngine.UIElements;
 using DG.Tweening;
 using static UnityEditor.Experimental.GraphView.GraphView;
 using UnityEngine.UI;
+using System;
 
 public class GameManager : MonoBehaviour
 {
@@ -25,8 +26,6 @@ public class GameManager : MonoBehaviour
     public float xMin = 1f;
     [TabGroup("GamePlay")]
     public float playerJumpPower = 1f;
-    [TabGroup("GamePlay")]
-    public float playerJumpDur = 0.8f;
 
 
     [Title("Camera")]
@@ -74,19 +73,23 @@ public class GameManager : MonoBehaviour
 
     public bool controller = true;
     float jumpStartPlayerY = 1.5f;
-    DG.Tweening.Sequence jumpTweener;
+    [NonSerialized]
+    public DG.Tweening.Sequence jumpTweener;
 
     Color playerStartColor, playerTargetColor, playerCurrentColor;
     float playerColorElapsedT = 0f;
     bool isPlayerColorAnimating = false, playerColorAnimatingPhase = false;
 
     float directorOffsZ = 1f;
+    float directorOffsY = 1f;
     float playerCurrentSpeed = 0f;
     float cameraOffsZ;
     Vector3 camOffset;
 
     void Start()
     {
+        directorOffsY = player.transform.position.y - director.transform.position.y;
+
         playerMat.color = playerMainColor;
         playerStartColor = playerMainColor;
 
@@ -140,10 +143,6 @@ public class GameManager : MonoBehaviour
                 SetPlayerColor(playerMainColor);
             }
         }
-        if (jumpTweener != null && player.transform.position.y <= jumpStartPlayerY-0.05f)
-        {
-            WaitForJump();
-        }
 
         MoveCamera();
 
@@ -170,37 +169,30 @@ public class GameManager : MonoBehaviour
         diaFrame.transform.DOScale(diaFrameDefScale, 0.15f);
     }
 
-    public void HitPlayerAt(Vector3 hitPoint)
+    public void HitPlayerAt(Vector3 hitPoint, float damage)
     {
         GameObject brokenPart = Instantiate(player.transform.GetChild(1).gameObject, hitPoint, Quaternion.identity);
-        brokenPart.transform.localScale = new Vector3(brokenPart.transform.localScale.x, 0.5f, brokenPart.transform.localScale.z);
-        ChangePlayerHeight(false, 50f);
+        brokenPart.transform.localScale = new Vector3(brokenPart.transform.localScale.x, damage * 0.01f, brokenPart.transform.localScale.z);
         brokenPart.AddComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
-        //brokenPart.GetComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
         brokenPart.transform.DORotate(new Vector3(179f, 0, 179f), 3.0f);
         Destroy(brokenPart, 3f);
+
+        ChangePlayerHeight(false, damage);
     }
 
-    public void JumpPlayerTo(Vector3 jumpPoint, bool isEnd)
+    public void JumpPlayerTo(Vector3 jumpPoint, float dur)
     {
-        if (isEnd)
-        {
-
-        }
-        else
-        {
         jumpStartPlayerY = player.transform.position.y;
         controller = false;
-        jumpTweener = player.transform.DOJump(jumpPoint, playerJumpPower, 1, playerJumpDur);
-        }
+        jumpTweener = player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur);
     }
 
-    void WaitForJump()
+    public void WaitForJump()
     {
         jumpTweener.Kill();
         controller = true;
-        director.transform.position = new Vector3(director.transform.position.x, director.transform.position.y, player.transform.position.z + directorOffsZ);
-        player.transform.position = new Vector3(player.transform.position.x, jumpStartPlayerY, player.transform.position.z);
+        director.transform.position = new Vector3(director.transform.position.x, player.transform.position.y + directorOffsY, player.transform.position.z + directorOffsZ);
+        //player.transform.position = new Vector3(player.transform.position.x, jumpStartPlayerY, player.transform.position.z);
     }
 
     void SetColorAnimTrig()

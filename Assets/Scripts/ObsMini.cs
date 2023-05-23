@@ -2,9 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ObsSc : MonoBehaviour
+public class ObsMini : MonoBehaviour
 {
     GameManager gM;
+    bool isHit = false;
+
     public float damage = 50;
     void Awake()
     {
@@ -13,9 +15,13 @@ public class ObsSc : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+    }
+    void OnCollisionEnter(Collision collision)
+    {
+        if (!isHit && collision.transform.CompareTag("Player"))
         {
-            gM.HitPlayerAt(transform.position, damage);
+            isHit = true;
+            gM.ChangePlayerHeight(false, damage);
         }
     }
 }

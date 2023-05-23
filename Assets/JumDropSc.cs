@@ -2,10 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ObsSc : MonoBehaviour
+public class JumDropSc : MonoBehaviour
 {
     GameManager gM;
-    public float damage = 50;
     void Awake()
     {
         gM = GameObject.Find("Game Manager").GetComponent<GameManager>();
@@ -13,9 +12,9 @@ public class ObsSc : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && gM.jumpTweener != null)
         {
-            gM.HitPlayerAt(transform.position, damage);
+            gM.WaitForJump();
         }
     }
 }
