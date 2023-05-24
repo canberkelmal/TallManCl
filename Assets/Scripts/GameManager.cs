@@ -10,6 +10,7 @@ using DG.Tweening;
 using static UnityEditor.Experimental.GraphView.GraphView;
 using UnityEngine.UI;
 using System;
+using static UnityEngine.Rendering.DebugUI;
 
 public class GameManager : MonoBehaviour
 {
@@ -176,15 +177,36 @@ public class GameManager : MonoBehaviour
         diaFrame.transform.DOScale(diaFrameDefScale, 0.15f);
     }
 
-    public void HitPlayerAt(Vector3 hitPoint, float damage)
+    public void HitPlayerAt(Vector3 hitPoint, float damage, bool brokePart)
     {
-        GameObject brokenPart = Instantiate(player.transform.GetChild(1).gameObject, hitPoint, Quaternion.identity);
-        brokenPart.transform.localScale = new Vector3(brokenPart.transform.localScale.x, damage * 0.01f, brokenPart.transform.localScale.z);
+        if(brokePart)
+        {
+            ThrowBroken(hitPoint, damage);
+        }
+
+        if (player.transform.GetChild(1).localScale.y - damage * 0.01f >= 1f)
+        {
+            ChangePlayerHeight(false, damage);
+        }
+        else
+        {
+            ChangePlayerWidth(false, damage);
+        }
+    }
+
+    void ThrowBroken(Vector3 spawnPoint, float amount)
+    {
+        spawnPoint.x = player.transform.position.x;
+        spawnPoint.z = player.transform.position.z;
+
+        GameObject brokenPart = Instantiate(player.transform.GetChild(1).gameObject, spawnPoint, Quaternion.identity);
+
+        brokenPart.transform.localScale = new Vector3(brokenPart.transform.localScale.x, amount * 0.01f, brokenPart.transform.localScale.z);
+
         brokenPart.AddComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
         brokenPart.transform.DORotate(new Vector3(179f, 0, 179f), 3.0f);
-        Destroy(brokenPart, 3f);
 
-        ChangePlayerHeight(false, damage);
+        Destroy(brokenPart, 3f);
     }
 
     public void JumpPlayerTo(Vector3 jumpPoint, float dur)
@@ -199,12 +221,57 @@ public class GameManager : MonoBehaviour
         jumpTweener.Kill();
         controller = true;
         director.transform.position = new Vector3(director.transform.position.x, player.transform.position.y + directorOffsY, player.transform.position.z + directorOffsZ);
-        //player.transform.position = new Vector3(player.transform.position.x, jumpStartPlayerY, player.transform.position.z);
+    }
+    public void ChangePlayerWidth(bool increase, float value)
+    {
+        if(increase)
+        {
+            player.transform.GetChild(1).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
+            player.transform.GetChild(2).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
+
+            StartPlayerColorAnim(increase);
+        }
+        else if(player.transform.GetChild(1).localScale.x - value * 0.01f >= 0.2f)
+        {
+            player.transform.GetChild(1).localScale -= new Vector3(value * 0.01f, 0, value * 0.01f);
+            player.transform.GetChild(2).localScale -= new Vector3(value * 0.01f, 0, value * 0.01f);
+
+            StartPlayerColorAnim(increase);
+        }
+        else
+        {
+            player.transform.GetChild(1).localScale = new Vector3(0.2f, player.transform.GetChild(1).localScale.y, 0.2f);
+            player.transform.GetChild(2).localScale = new Vector3(0.2f, player.transform.GetChild(2).localScale.y, 0.2f);
+
+            StartPlayerColorAnim(increase);
+
+            Failed();
+        }
+
     }
 
-    void SetColorAnimTrig()
+    public void ChangePlayerHeight(bool increase, float value)
     {
-        isPlayerColorAnimating = true;
+        if (increase)
+        {
+            player.transform.GetChild(1).localScale += new Vector3(0, value * 0.01f, 0);
+
+            StartPlayerColorAnim(increase);
+        }
+        else if (player.transform.GetChild(1).localScale.y - value * 0.01f >= 1f)
+        {
+            player.transform.GetChild(1).localScale -= new Vector3(0, value * 0.01f, 0);
+
+            StartPlayerColorAnim(increase);
+        }
+        else
+        {
+            player.transform.GetChild(1).localScale = new Vector3(player.transform.GetChild(1).localScale.x, 1, player.transform.GetChild(1).localScale.z);
+
+            StartPlayerColorAnim(increase);
+
+            Failed();
+        }
     }
 
     void StartPlayerColorAnim(bool positive)
@@ -228,10 +295,14 @@ public class GameManager : MonoBehaviour
         playerMat.color = setColor;
     }
 
+    void SetColorAnimTrig()
+    {
+        isPlayerColorAnimating = true;
+    }
+
 
     void UpdateDirectorPositionX()
     {
-
         if (Input.GetAxis("Mouse X") != 0)
         {
             float mouseX = Input.GetAxis("Mouse X");
@@ -270,55 +341,10 @@ public class GameManager : MonoBehaviour
         player.transform.LookAt(director.transform.position);
     }
 
-    public void ChangePlayerWidth(bool increase, float value)
+    void MoveCamera()
     {
-        if(increase)
-        {
-            player.transform.GetChild(1).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
-            player.transform.GetChild(2).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
-
-            StartPlayerColorAnim(increase);
-        }
-        else if(player.transform.GetChild(1).localScale.x - value * 0.01f >= 0.2f)
-        {
-            player.transform.GetChild(1).localScale -= new Vector3(value * 0.01f, 0, value * 0.01f);
-            player.transform.GetChild(2).localScale -= new Vector3(value * 0.01f, 0, value * 0.01f);
-
-            StartPlayerColorAnim(increase);
-        }
-        else
-        {
-            player.transform.GetChild(1).localScale = new Vector3(0.2f, player.transform.GetChild(1).localScale.y, 0.2f);
-            player.transform.GetChild(2).localScale = new Vector3(0.2f, player.transform.GetChild(2).localScale.y, 0.2f);
-
-            StartPlayerColorAnim(increase);
-
-            Failed();
-        }
-
-    }
-    public void ChangePlayerHeight(bool increase, float value)
-    {
-        if (increase)
-        {
-            player.transform.GetChild(1).localScale += new Vector3(0, value * 0.01f, 0);
-
-            StartPlayerColorAnim(increase);
-        }
-        else if (player.transform.GetChild(1).localScale.y - value * 0.01f >= 1f)
-        {
-            player.transform.GetChild(1).localScale -= new Vector3(0, value * 0.01f, 0);
-
-            StartPlayerColorAnim(increase);
-        }
-        else
-        {
-            player.transform.GetChild(1).localScale = new Vector3(player.transform.GetChild(1).localScale.x, 1, player.transform.GetChild(1).localScale.z);
-
-            StartPlayerColorAnim(increase);
-
-            Failed();
-        }
+        Vector3 camTargetPoint = player.transform.position - camOffset;
+        cam.transform.position = camTargetPoint;
     }
 
     void Failed()
@@ -326,15 +352,6 @@ public class GameManager : MonoBehaviour
         controller = false;
         Time.timeScale = 0.5f;
         failPanel.SetActive(true);
-    }
-
-    void MoveCamera()
-    {
-        //Vector3 camTargetPoint = new Vector3(player.transform.position.x, cam.transform.position.y, player.transform.position.z - cameraOffsZ);
-        Vector3 camTargetPoint = player.transform.position - camOffset;
-        //cam.transform.position = Vector3.Lerp(cam.transform.position, camTargetPoint, camMoveSens * Time.deltaTime);
-        //cam.transform.position = Vector3.MoveTowards(cam.transform.position, camTargetPoint, camMoveSens * Time.deltaTime);
-        cam.transform.position = camTargetPoint;
     }
 
     // Reload the current scene to restart the game

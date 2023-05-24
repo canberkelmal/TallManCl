@@ -33,7 +33,8 @@ public class ObsMini : MonoBehaviour
         if (!isHit && collision.transform.CompareTag("Player"))
         {
             isHit = true;
-            gM.ChangePlayerHeight(false, damage);
+
+            gM.HitPlayerAt(transform.position, damage, false);
         }
     }
 }

@@ -15,7 +15,7 @@ public class ObsSc : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            gM.HitPlayerAt(transform.position, damage);
+            gM.HitPlayerAt(transform.position, damage, true);
         }
     }
 }
