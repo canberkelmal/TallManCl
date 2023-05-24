@@ -46,6 +46,10 @@ public class GameManager : MonoBehaviour
     [TabGroup("Objects")]
     [SceneObjectsOnly]
     public GameObject diaFrame;
+    [Title("UI")]
+    [TabGroup("Objects")]
+    [SceneObjectsOnly]
+    public GameObject failPanel;
     [Title("Materials")]
     [TabGroup("Objects")]
     [AssetsOnly]
@@ -64,6 +68,8 @@ public class GameManager : MonoBehaviour
     [Title("Player hit and lose part")]
     [TabGroup("Animations")]
     public float brokenPartForce = 1f;
+    [TabGroup("Animations")]
+    public float obsMiniHitForce = 1f;
     [Title("Door")]
     [TabGroup("Animations")]
     public float doorSlideSens = 1f;
@@ -88,6 +94,9 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        failPanel.SetActive(false);
+        Time.timeScale = 1f;
+
         directorOffsY = player.transform.position.y - director.transform.position.y;
 
         playerMat.color = playerMainColor;
@@ -285,6 +294,8 @@ public class GameManager : MonoBehaviour
             player.transform.GetChild(2).localScale = new Vector3(0.2f, player.transform.GetChild(2).localScale.y, 0.2f);
 
             StartPlayerColorAnim(increase);
+
+            Failed();
         }
 
     }
@@ -307,7 +318,16 @@ public class GameManager : MonoBehaviour
             player.transform.GetChild(1).localScale = new Vector3(player.transform.GetChild(1).localScale.x, 1, player.transform.GetChild(1).localScale.z);
 
             StartPlayerColorAnim(increase);
+
+            Failed();
         }
+    }
+
+    void Failed()
+    {
+        controller = false;
+        Time.timeScale = 0.5f;
+        failPanel.SetActive(true);
     }
 
     void MoveCamera()
