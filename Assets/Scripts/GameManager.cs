@@ -3,14 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Sirenix.OdinInspector;
-using static Sirenix.OdinInspector.Editor.Internal.FastDeepCopier;
-using Unity.VisualScripting;
-using UnityEngine.UIElements;
 using DG.Tweening;
-using static UnityEditor.Experimental.GraphView.GraphView;
 using UnityEngine.UI;
 using System;
-using static UnityEngine.Rendering.DebugUI;
 
 public class GameManager : MonoBehaviour
 {
@@ -209,17 +204,53 @@ public class GameManager : MonoBehaviour
     public void JumpPlayerTo(Vector3 jumpPoint, float dur)
     {
         controller = false;
+        playerCurrentSpeed = 0;
         player.transform.rotation = Quaternion.identity;
 
-        jumpPoint.y = player.transform.position.y;
-        jumpTweener = player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur).SetEase(Ease.Linear).OnComplete(WaitForJump);
+        jumpPoint.y = player.transform.position.y+ 0.01f;
+        //StartCoroutine(JumpPlayer(jumpPoint, dur));
+
+        //jumpTweener = player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur, false).SetEase(Ease.Linear).OnComplete(WaitForJump);
+        player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur, false).SetEase(Ease.Linear).OnComplete(WaitForJump);
     }
 
     public void WaitForJump()
     {
+        //jumpTweener.Kill();
         controller = true;
         director.transform.position = new Vector3(director.transform.position.x, player.transform.position.y + directorOffsY, player.transform.position.z + directorOffsZ);
     }
+
+    IEnumerator JumpPlayer(Vector3 jumpPosition, float jumpDuration)
+    {
+        jumpPosition.y = player.transform.position.y;
+        controller = false;
+        player.transform.rotation = Quaternion.identity;
+        Vector3 startPos= player.transform.position;
+
+        float timer = 0f;
+        while (timer < jumpDuration)
+        {
+            // Zýplama efektini hesaplama
+            float normalizedTime = timer / jumpDuration;
+            float jumpProgress = Mathf.PingPong(normalizedTime * 2f, 1f);
+            Vector3 jumpPositionCurrent = Vector3.Lerp(startPos, jumpPosition, jumpProgress);
+            jumpPositionCurrent.y += playerJumpPower * (1f - Mathf.Abs(jumpProgress - 0.5f) * 2f);
+
+            // Objeyi yeni pozisyona taþýma
+            player.transform.position = jumpPositionCurrent;
+
+            // Zamaný güncelleme
+            timer += Time.deltaTime;
+
+            yield return null;
+        }
+
+        // Son pozisyonu ayarlama
+        player.transform.position = jumpPosition;
+        WaitForJump();
+    }
+
     public void ChangePlayerWidth(bool increase, float value)
     {
         if(increase)
