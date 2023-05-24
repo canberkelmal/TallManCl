@@ -29,11 +29,6 @@ public class GameManager : MonoBehaviour
     public float playerJumpPower = 1f;
 
 
-    [Title("Camera")]
-    [TabGroup("GameSettings")]
-    public float camMoveSens = 1f;
-
-
     [Title("Scene Objects")]
     [TabGroup("Objects")]
     [SceneObjectsOnly]
@@ -47,14 +42,17 @@ public class GameManager : MonoBehaviour
     [TabGroup("Objects")]
     [SceneObjectsOnly]
     public GameObject diaFrame;
+
     [Title("UI")]
     [TabGroup("Objects")]
     [SceneObjectsOnly]
     public GameObject failPanel;
+
     [Title("Materials")]
     [TabGroup("Objects")]
     [AssetsOnly]
     public Material playerMat;
+
     [Title("Particles")]
     [TabGroup("Objects")]
     [AssetsOnly]
@@ -66,11 +64,13 @@ public class GameManager : MonoBehaviour
     public float playerColorAnimDur = 0.5f;
     [TabGroup("Animations")]
     public Color playerColorPositive, playerColorNegative, playerMainColor;
+
     [Title("Player hit and lose part")]
     [TabGroup("Animations")]
     public float brokenPartForce = 1f;
     [TabGroup("Animations")]
     public float obsMiniHitForce = 1f;
+
     [Title("Door")]
     [TabGroup("Animations")]
     public float doorSlideSens = 1f;
@@ -78,10 +78,9 @@ public class GameManager : MonoBehaviour
     int diaCount;
     Vector3 diaFrameDefScale;
 
-    public bool controller = true;
-    float jumpStartPlayerY = 1.5f;
     [NonSerialized]
     public DG.Tweening.Sequence jumpTweener;
+    public bool controller = true;
 
     Color playerStartColor, playerTargetColor, playerCurrentColor;
     float playerColorElapsedT = 0f;
@@ -130,7 +129,6 @@ public class GameManager : MonoBehaviour
             float t = Mathf.Clamp01(playerColorElapsedT / playerColorAnimDur);
 
             playerCurrentColor = Color.Lerp(playerStartColor, playerTargetColor, t);
-            //player.GetComponent<Renderer>().material.color = playerCurrentColor;
             SetPlayerColor(playerCurrentColor);
             if (t >= 1f && !playerColorAnimatingPhase)
             {
@@ -147,7 +145,6 @@ public class GameManager : MonoBehaviour
                 isPlayerColorAnimating = false;
                 playerColorAnimatingPhase = false;
                 playerColorElapsedT = 0f;
-                //player.GetComponent<Renderer>().material.color = playerMainColor;
                 SetPlayerColor(playerMainColor);
             }
         }
@@ -211,14 +208,15 @@ public class GameManager : MonoBehaviour
 
     public void JumpPlayerTo(Vector3 jumpPoint, float dur)
     {
-        jumpStartPlayerY = player.transform.position.y;
         controller = false;
-        jumpTweener = player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur);
+        player.transform.rotation = Quaternion.identity;
+
+        jumpPoint.y = player.transform.position.y;
+        jumpTweener = player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur).SetEase(Ease.Linear).OnComplete(WaitForJump);
     }
 
     public void WaitForJump()
     {
-        jumpTweener.Kill();
         controller = true;
         director.transform.position = new Vector3(director.transform.position.x, player.transform.position.y + directorOffsY, player.transform.position.z + directorOffsZ);
     }
@@ -303,6 +301,8 @@ public class GameManager : MonoBehaviour
 
     void UpdateDirectorPositionX()
     {
+        UpdatePlayerRotationY();
+
         if (Input.GetAxis("Mouse X") != 0)
         {
             float mouseX = Input.GetAxis("Mouse X");
@@ -318,7 +318,6 @@ public class GameManager : MonoBehaviour
             director.transform.position = Vector3.Lerp(director.transform.position, player.transform.position + Vector3.forward * directorOffsZ, playerRotateSens * Time.deltaTime);
             director.transform.position = new Vector3(director.transform.position.x, director.transform.position.y, player.transform.position.z + directorOffsZ);
         }
-        UpdatePlayerRotationY();
     }
 
     void MovePlayer(bool direction)
@@ -333,7 +332,6 @@ public class GameManager : MonoBehaviour
         }
         playerCurrentSpeed = Mathf.Clamp(playerCurrentSpeed, 0f, playerMaxSpeed);
         player.transform.position += player.transform.forward * playerCurrentSpeed * Time.deltaTime;
-
     }
 
     void UpdatePlayerRotationY()

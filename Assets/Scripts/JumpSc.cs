@@ -5,6 +5,8 @@ using UnityEngine;
 public class JumpSc : MonoBehaviour
 {
     GameManager gM;
+    bool isJumped = false;
+
     public float jumpDur = 2.5f;
     void Awake()
     {
@@ -13,8 +15,9 @@ public class JumpSc : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && !isJumped)
         {
+            isJumped = true;
             gM.JumpPlayerTo(transform.parent.GetChild(1).position, jumpDur);
             //Destroy(gameObject);
         }
