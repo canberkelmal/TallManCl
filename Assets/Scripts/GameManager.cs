@@ -89,7 +89,6 @@ public class GameManager : MonoBehaviour
     float directorOffsZ = 1f;
     float directorOffsY = 1f;
     float playerCurrentSpeed = 0f;
-    float cameraOffsZ;
     Vector3 camOffset;
 
     void Start()
@@ -102,7 +101,6 @@ public class GameManager : MonoBehaviour
         playerMat.color = playerMainColor;
         playerStartColor = playerMainColor;
 
-        cameraOffsZ = player.transform.position.z - cam.transform.position.z;
         camOffset = player.transform.position - cam.transform.position;
 
         diaCount = PlayerPrefs.GetInt("diaCount", 0);
@@ -334,7 +332,9 @@ public class GameManager : MonoBehaviour
     {
         //Vector3 camTargetPoint = new Vector3(player.transform.position.x, cam.transform.position.y, player.transform.position.z - cameraOffsZ);
         Vector3 camTargetPoint = player.transform.position - camOffset;
-        cam.transform.position = Vector3.Lerp(cam.transform.position, camTargetPoint, camMoveSens * Time.deltaTime);
+        //cam.transform.position = Vector3.Lerp(cam.transform.position, camTargetPoint, camMoveSens * Time.deltaTime);
+        //cam.transform.position = Vector3.MoveTowards(cam.transform.position, camTargetPoint, camMoveSens * Time.deltaTime);
+        cam.transform.position = camTargetPoint;
     }
 
     // Reload the current scene to restart the game
