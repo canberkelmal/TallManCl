@@ -52,6 +52,9 @@ public class GameManager : MonoBehaviour
     [TabGroup("Objects")]
     [AssetsOnly]
     public GameObject takeDiaParticle;
+    [TabGroup("Objects")]
+    [AssetsOnly]
+    public GameObject finishConfettis;
 
 
     [Title("Player color change")]
@@ -85,6 +88,14 @@ public class GameManager : MonoBehaviour
     float directorOffsY = 1f;
     float playerCurrentSpeed = 0f;
     Vector3 camOffset;
+
+
+    [NonSerialized]
+    public float jumpStartTime;
+    [NonSerialized]
+    public float jumpDuration = 2f;
+    float startYPos, targetYPos, targetZPos, startZPos;
+
 
     void Start()
     {
@@ -201,10 +212,63 @@ public class GameManager : MonoBehaviour
         Destroy(brokenPart, 3f);
     }
 
+    public void StartJump(Vector3 jumpPoint, float dur)
+    {
+        controller = false;
+        playerCurrentSpeed = 0;
+        player.transform.rotation = Quaternion.identity;
+
+        jumpStartTime = Time.time;
+
+        startYPos = player.transform.position.y;
+        targetYPos = startYPos + playerJumpPower;
+        startZPos = player.transform.position.z;
+        targetZPos = jumpPoint.z - startZPos;
+        jumpDuration = dur;
+
+        InvokeRepeating("Jumping", 0, Time.deltaTime);
+    }
+
+    void Jumping()
+    {
+        if (IsJumping())
+        {
+            float elapsedTime = Time.time - jumpStartTime;
+            float normalizedTime = elapsedTime / jumpDuration;
+            //float yPos = Mathf.SmoothStep(startYPos, targetYPos, normalizedTime);
+            float yPos = Mathf.Lerp(startYPos, targetYPos, Mathf.SmoothStep(0f, 1f, normalizedTime));
+
+            // X ekseninde hareket ettirme kodunu buraya ekleyin
+            // Örneðin: transform.position += new Vector3(moveSpeed * Time.deltaTime, 0f, 0f);
+
+            // Y ekseninde hareket ettir
+            float normalizedHeight = (yPos - startYPos) / playerJumpPower;
+            float sinHeight = Mathf.Sin(normalizedHeight * Mathf.PI);
+            yPos = startYPos + sinHeight * playerJumpPower;
+
+            float zPos = normalizedTime * targetZPos + startZPos;
+            player.transform.position = new Vector3(player.transform.position.x, yPos, zPos);
+        }
+        else
+        {
+            CancelInvoke("Jumping");
+        }
+    }
+
+    private bool IsJumping()
+    {
+        // Zýplama iþlemi tamamlandý mý?
+        return Time.time - jumpStartTime <= jumpDuration;
+    }
+
+
+
 
 
     public void JumpPlayerTo(Vector3 jumpPoint, float dur)
     {
+        player.GetComponent<Rigidbody>().useGravity = false;
+
         controller = false;
         playerCurrentSpeed = 0;
         player.transform.rotation = Quaternion.identity;
@@ -253,6 +317,7 @@ public class GameManager : MonoBehaviour
         //jumpTweener.Kill();
         controller = true;
         director.transform.position = new Vector3(director.transform.position.x, player.transform.position.y + directorOffsY, player.transform.position.z + directorOffsZ);
+        player.GetComponent<Rigidbody>().useGravity = true;
     }
 
     IEnumerator JumpPlayer(Vector3 jumpPosition, float jumpDuration)

@@ -19,6 +19,9 @@ public class JumpSc : MonoBehaviour
         {
             isJumped = true;
             gM.JumpPlayerTo(transform.parent.GetChild(1).position, jumpDur);
+
+            //gM.StartJump(transform.parent.GetChild(1).position, jumpDur);
+
             //Destroy(gameObject);
         }
     }
