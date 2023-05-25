@@ -12,7 +12,7 @@ public class JumDropSc : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") && gM.jumpTweener != null)
+        if (other.CompareTag("Player") && !gM.controller)
         {
             gM.WaitForJump();
         }

@@ -201,6 +201,8 @@ public class GameManager : MonoBehaviour
         Destroy(brokenPart, 3f);
     }
 
+
+
     public void JumpPlayerTo(Vector3 jumpPoint, float dur)
     {
         controller = false;
@@ -209,9 +211,41 @@ public class GameManager : MonoBehaviour
 
         jumpPoint.y = player.transform.position.y+ 0.01f;
         //StartCoroutine(JumpPlayer(jumpPoint, dur));
+        //Jump(jumpPoint, dur);
 
-        //jumpTweener = player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur, false).SetEase(Ease.Linear).OnComplete(WaitForJump);
-        player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur, false).SetEase(Ease.Linear).OnComplete(WaitForJump);
+        jumpTweener = player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur, false)
+            .SetEase(Ease.Linear)
+            .OnComplete(WaitForJump);
+
+        //player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur, false)
+        //    .SetEase(Ease.Linear)
+        //    .OnComplete(WaitForJump);
+    }
+
+    void Jump(Vector3 targetPos, float jumpDuration)
+    {
+        Vector3 startPos = player.transform.position;
+        Vector3 jumpPosition = targetPos;
+        float timer = 0f;
+
+        while (timer < jumpDuration)
+        {
+            float normalizedTime = timer / jumpDuration;
+            float jumpProgress = Mathf.Sin(normalizedTime * Mathf.PI);
+            Vector3 jumpPositionCurrent = Vector3.Lerp(startPos, jumpPosition, jumpProgress);
+
+            player.transform.position = jumpPositionCurrent;
+            timer += Time.deltaTime;
+
+            // yield return null; // Bu satýrý ekleyerek hareketin her frame'de güncellenmesini saðlayabilirsiniz.
+
+            // Yukarýdaki yield return null; satýrýný eklemek yerine, FixedUpdate() fonksiyonunda kullanmak isterseniz aþaðýdaki kodu kullanabilirsiniz:
+            // yield return new WaitForFixedUpdate();
+        }
+
+        player.transform.position = jumpPosition;
+        WaitForJump();
+        Debug.Log("Jump completed");
     }
 
     public void WaitForJump()
@@ -229,14 +263,13 @@ public class GameManager : MonoBehaviour
         Vector3 startPos= player.transform.position;
 
         float timer = 0f;
-        while (timer < jumpDuration)
+        while (timer < jumpDuration/2)
         {
             // Zýplama efektini hesaplama
             float normalizedTime = timer / jumpDuration;
-            float jumpProgress = Mathf.PingPong(normalizedTime * 2f, 1f);
+            float jumpProgress = Mathf.Sin(normalizedTime * Mathf.PI);
             Vector3 jumpPositionCurrent = Vector3.Lerp(startPos, jumpPosition, jumpProgress);
             jumpPositionCurrent.y += playerJumpPower * (1f - Mathf.Abs(jumpProgress - 0.5f) * 2f);
-
             // Objeyi yeni pozisyona taþýma
             player.transform.position = jumpPositionCurrent;
 
