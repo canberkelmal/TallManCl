@@ -38,6 +38,23 @@ public class GameManager : MonoBehaviour
     [SceneObjectsOnly]
     public GameObject diaFrame;
 
+    [Title("Player Shape Objects")]
+    [TabGroup("Objects")]
+    [SceneObjectsOnly]
+    public GameObject arms;
+    [TabGroup("Objects")]
+    [SceneObjectsOnly]
+    public GameObject body;
+    [TabGroup("Objects")]
+    [SceneObjectsOnly]
+    public GameObject hips;
+    [TabGroup("Objects")]
+    [SceneObjectsOnly]
+    public GameObject legs;
+    [TabGroup("Objects")]
+    [SceneObjectsOnly]
+    public GameObject spine;
+
     [Title("UI")]
     [TabGroup("Objects")]
     [SceneObjectsOnly]
@@ -96,9 +113,13 @@ public class GameManager : MonoBehaviour
     public float jumpDuration = 2f;
     float startYPos, targetYPos, targetZPos, startZPos;
 
+    public float thicknessShapeKey = 0;
+    public float height = 0;
+
 
     void Start()
     {
+        height = spine.transform.localPosition.y;
         failPanel.SetActive(false);
         Time.timeScale = 1f;
 
@@ -117,6 +138,7 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //ReshapePlayer();
         if (Input.GetMouseButton(0) && controller)
         {
             UpdateDirectorPositionX();
@@ -351,7 +373,28 @@ public class GameManager : MonoBehaviour
 
     public void ChangePlayerWidth(bool increase, float value)
     {
-        if(increase)
+        if (increase)
+        {
+            ReshapePlayer(value);
+
+            StartPlayerColorAnim(increase);
+        }
+        else if (player.transform.GetChild(1).localScale.x - value * 0.01f >= 0.2f)
+        {
+            ReshapePlayer(-value);
+
+            StartPlayerColorAnim(increase);
+        }
+        else
+        {
+            ReshapePlayer(0);
+
+            StartPlayerColorAnim(increase);
+
+            Failed();
+        }
+        /*
+        if (increase)
         {
             player.transform.GetChild(1).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
             player.transform.GetChild(2).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
@@ -373,12 +416,37 @@ public class GameManager : MonoBehaviour
             StartPlayerColorAnim(increase);
 
             Failed();
-        }
+        }*/
 
     }
 
     public void ChangePlayerHeight(bool increase, float value)
     {
+        if (increase)
+        {
+            height += value * 0.01f;
+            spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z);
+
+            StartPlayerColorAnim(increase);
+        }
+        else if (spine.transform.position.y - value * 0.01f >= 0.27f)
+        {
+            height -= value * 0.01f;
+            spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z);
+
+            StartPlayerColorAnim(increase);
+        }
+        else
+        {
+            height = 0.27f;
+            spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z); ;
+
+            StartPlayerColorAnim(increase);
+
+            Failed();
+        }
+
+        /*
         if (increase)
         {
             player.transform.GetChild(1).localScale += new Vector3(0, value * 0.01f, 0);
@@ -398,7 +466,9 @@ public class GameManager : MonoBehaviour
             StartPlayerColorAnim(increase);
 
             Failed();
-        }
+        }*/
+
+
     }
 
     void StartPlayerColorAnim(bool positive)
@@ -476,14 +546,23 @@ public class GameManager : MonoBehaviour
 
     void Failed()
     {
-        controller = false;
-        Time.timeScale = 0.5f;
-        failPanel.SetActive(true);
+        //controller = false;
+        //Time.timeScale = 0.5f;
+        //failPanel.SetActive(true);
     }
 
     // Reload the current scene to restart the game
     public void Restart()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    void ReshapePlayer(float a)
+    {
+        float x = a != 0 ? arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) + a : 0;
+        arms.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
+        body.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
+        hips.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
+        legs.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
     }
 }
