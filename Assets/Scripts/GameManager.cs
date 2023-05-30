@@ -6,6 +6,7 @@ using Sirenix.OdinInspector;
 using DG.Tweening;
 using UnityEngine.UI;
 using System;
+using static UnityEngine.Rendering.DebugUI;
 
 public class GameManager : MonoBehaviour
 {
@@ -22,6 +23,11 @@ public class GameManager : MonoBehaviour
     public float xMin = 1f;
     [TabGroup("GamePlay")]
     public float playerJumpPower = 1f;
+    [Title("Reshape")]
+    [TabGroup("GamePlay")]
+    public float widthCons = 8f;
+    [TabGroup("GamePlay")]
+    public float heigthCons = 0.01f;
 
 
     [Title("Scene Objects")]
@@ -65,6 +71,11 @@ public class GameManager : MonoBehaviour
     [AssetsOnly]
     public Material playerMat;
 
+    [Title("Assets")]
+    [TabGroup("Objects")]
+    [AssetsOnly]
+    public GameObject brokenCyl;
+
     [Title("Particles")]
     [TabGroup("Objects")]
     [AssetsOnly]
@@ -80,11 +91,15 @@ public class GameManager : MonoBehaviour
     [TabGroup("Animations")]
     public Color playerColorPositive, playerColorNegative, playerMainColor;
 
-    [Title("Player hit and lose part")]
+    [Title("Player reshape")]
     [TabGroup("Animations")]
     public float brokenPartForce = 1f;
     [TabGroup("Animations")]
     public float obsMiniHitForce = 1f;
+    [TabGroup("Animations")]
+    public float heightAnimSens = 1f;
+    [TabGroup("Animations")]
+    public float widthAnimSens = 1f;
 
     [Title("Door")]
     [TabGroup("Animations")]
@@ -115,11 +130,15 @@ public class GameManager : MonoBehaviour
 
     public float thicknessShapeKey = 0;
     public float height = 0;
+    float defHeight, defScale;
 
 
     void Start()
     {
         height = spine.transform.localPosition.y;
+        defHeight = height;
+        defScale = player.transform.GetChild(1).localScale.x;
+
         failPanel.SetActive(false);
         Time.timeScale = 1f;
 
@@ -138,7 +157,6 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //ReshapePlayer();
         if (Input.GetMouseButton(0) && controller)
         {
             UpdateDirectorPositionX();
@@ -206,10 +224,10 @@ public class GameManager : MonoBehaviour
     {
         if(brokePart)
         {
-            ThrowBroken(hitPoint, damage);
+            ThrowBroken(hitPoint);
         }
 
-        if (player.transform.GetChild(1).localScale.y - damage * 0.01f >= 1f)
+        if (spine.transform.position.y-(damage * heigthCons) >= defHeight)
         {
             ChangePlayerHeight(false, damage);
         }
@@ -219,73 +237,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void ThrowBroken(Vector3 spawnPoint, float amount)
+    void ThrowBroken(Vector3 spawnPoint)
     {
         spawnPoint.x = player.transform.position.x;
         spawnPoint.z = player.transform.position.z;
 
-        GameObject brokenPart = Instantiate(player.transform.GetChild(1).gameObject, spawnPoint, Quaternion.identity);
+        GameObject brokenPart = Instantiate(brokenCyl, spawnPoint, Quaternion.identity);
 
-        brokenPart.transform.localScale = new Vector3(brokenPart.transform.localScale.x, amount * 0.01f, brokenPart.transform.localScale.z);
+        float r = arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) > 0 ? arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) * 0.00125f : 0.25f;
+
+        brokenPart.transform.localScale = new Vector3(r, brokenPart.transform.localScale.y, r);
 
         brokenPart.AddComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
         brokenPart.transform.DORotate(new Vector3(179f, 0, 179f), 3.0f);
 
         Destroy(brokenPart, 3f);
     }
-
-    public void StartJump(Vector3 jumpPoint, float dur)
-    {
-        controller = false;
-        playerCurrentSpeed = 0;
-        player.transform.rotation = Quaternion.identity;
-
-        jumpStartTime = Time.time;
-
-        startYPos = player.transform.position.y;
-        targetYPos = startYPos + playerJumpPower;
-        startZPos = player.transform.position.z;
-        targetZPos = jumpPoint.z - startZPos;
-        jumpDuration = dur;
-
-        InvokeRepeating("Jumping", 0, Time.deltaTime);
-    }
-
-    void Jumping()
-    {
-        if (IsJumping())
-        {
-            float elapsedTime = Time.time - jumpStartTime;
-            float normalizedTime = elapsedTime / jumpDuration;
-            //float yPos = Mathf.SmoothStep(startYPos, targetYPos, normalizedTime);
-            float yPos = Mathf.Lerp(startYPos, targetYPos, Mathf.SmoothStep(0f, 1f, normalizedTime));
-
-            // X ekseninde hareket ettirme kodunu buraya ekleyin
-            // Örneðin: transform.position += new Vector3(moveSpeed * Time.deltaTime, 0f, 0f);
-
-            // Y ekseninde hareket ettir
-            float normalizedHeight = (yPos - startYPos) / playerJumpPower;
-            float sinHeight = Mathf.Sin(normalizedHeight * Mathf.PI);
-            yPos = startYPos + sinHeight * playerJumpPower;
-
-            float zPos = normalizedTime * targetZPos + startZPos;
-            player.transform.position = new Vector3(player.transform.position.x, yPos, zPos);
-        }
-        else
-        {
-            CancelInvoke("Jumping");
-        }
-    }
-
-    private bool IsJumping()
-    {
-        // Zýplama iþlemi tamamlandý mý?
-        return Time.time - jumpStartTime <= jumpDuration;
-    }
-
-
-
-
 
     public void JumpPlayerTo(Vector3 jumpPoint, float dur)
     {
@@ -296,79 +263,17 @@ public class GameManager : MonoBehaviour
         player.transform.rotation = Quaternion.identity;
 
         jumpPoint.y = player.transform.position.y+ 0.01f;
-        //StartCoroutine(JumpPlayer(jumpPoint, dur));
-        //Jump(jumpPoint, dur);
 
         jumpTweener = player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur, false)
             .SetEase(Ease.Linear)
             .OnComplete(WaitForJump);
-
-        //player.transform.DOJump(jumpPoint, playerJumpPower, 1, dur, false)
-        //    .SetEase(Ease.Linear)
-        //    .OnComplete(WaitForJump);
-    }
-
-    void Jump(Vector3 targetPos, float jumpDuration)
-    {
-        Vector3 startPos = player.transform.position;
-        Vector3 jumpPosition = targetPos;
-        float timer = 0f;
-
-        while (timer < jumpDuration)
-        {
-            float normalizedTime = timer / jumpDuration;
-            float jumpProgress = Mathf.Sin(normalizedTime * Mathf.PI);
-            Vector3 jumpPositionCurrent = Vector3.Lerp(startPos, jumpPosition, jumpProgress);
-
-            player.transform.position = jumpPositionCurrent;
-            timer += Time.deltaTime;
-
-            // yield return null; // Bu satýrý ekleyerek hareketin her frame'de güncellenmesini saðlayabilirsiniz.
-
-            // Yukarýdaki yield return null; satýrýný eklemek yerine, FixedUpdate() fonksiyonunda kullanmak isterseniz aþaðýdaki kodu kullanabilirsiniz:
-            // yield return new WaitForFixedUpdate();
-        }
-
-        player.transform.position = jumpPosition;
-        WaitForJump();
-        Debug.Log("Jump completed");
     }
 
     public void WaitForJump()
     {
-        //jumpTweener.Kill();
         controller = true;
         director.transform.position = new Vector3(director.transform.position.x, player.transform.position.y + directorOffsY, player.transform.position.z + directorOffsZ);
         player.GetComponent<Rigidbody>().useGravity = true;
-    }
-
-    IEnumerator JumpPlayer(Vector3 jumpPosition, float jumpDuration)
-    {
-        jumpPosition.y = player.transform.position.y;
-        controller = false;
-        player.transform.rotation = Quaternion.identity;
-        Vector3 startPos= player.transform.position;
-
-        float timer = 0f;
-        while (timer < jumpDuration/2)
-        {
-            // Zýplama efektini hesaplama
-            float normalizedTime = timer / jumpDuration;
-            float jumpProgress = Mathf.Sin(normalizedTime * Mathf.PI);
-            Vector3 jumpPositionCurrent = Vector3.Lerp(startPos, jumpPosition, jumpProgress);
-            jumpPositionCurrent.y += playerJumpPower * (1f - Mathf.Abs(jumpProgress - 0.5f) * 2f);
-            // Objeyi yeni pozisyona taþýma
-            player.transform.position = jumpPositionCurrent;
-
-            // Zamaný güncelleme
-            timer += Time.deltaTime;
-
-            yield return null;
-        }
-
-        // Son pozisyonu ayarlama
-        player.transform.position = jumpPosition;
-        WaitForJump();
     }
 
     public void ChangePlayerWidth(bool increase, float value)
@@ -379,7 +284,7 @@ public class GameManager : MonoBehaviour
 
             StartPlayerColorAnim(increase);
         }
-        else if (player.transform.GetChild(1).localScale.x - value * 0.01f >= 0.2f)
+        else if (player.transform.GetChild(1).localScale.x - value * 0.01f >= defScale)
         {
             ReshapePlayer(-value);
 
@@ -393,82 +298,70 @@ public class GameManager : MonoBehaviour
 
             Failed();
         }
-        /*
-        if (increase)
-        {
-            player.transform.GetChild(1).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
-            player.transform.GetChild(2).localScale += new Vector3(value * 0.01f, 0, value * 0.01f);
-
-            StartPlayerColorAnim(increase);
-        }
-        else if(player.transform.GetChild(1).localScale.x - value * 0.01f >= 0.2f)
-        {
-            player.transform.GetChild(1).localScale -= new Vector3(value * 0.01f, 0, value * 0.01f);
-            player.transform.GetChild(2).localScale -= new Vector3(value * 0.01f, 0, value * 0.01f);
-
-            StartPlayerColorAnim(increase);
-        }
-        else
-        {
-            player.transform.GetChild(1).localScale = new Vector3(0.2f, player.transform.GetChild(1).localScale.y, 0.2f);
-            player.transform.GetChild(2).localScale = new Vector3(0.2f, player.transform.GetChild(2).localScale.y, 0.2f);
-
-            StartPlayerColorAnim(increase);
-
-            Failed();
-        }*/
-
     }
 
     public void ChangePlayerHeight(bool increase, float value)
     {
         if (increase)
         {
-            height += value * 0.01f;
-            spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z);
+            height += value * heigthCons;
 
-            StartPlayerColorAnim(increase);
+            //spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z);
+            //StartPlayerColorAnim(increase);
         }
-        else if (spine.transform.position.y - value * 0.01f >= 0.27f)
+        else if (spine.transform.position.y - value * heigthCons >= defHeight)
         {
-            height -= value * 0.01f;
-            spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z);
+            height -= value * heigthCons;
 
-            StartPlayerColorAnim(increase);
-        }
-        else
-        {
-            height = 0.27f;
-            spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z); ;
-
-            StartPlayerColorAnim(increase);
-
-            Failed();
-        }
-
-        /*
-        if (increase)
-        {
-            player.transform.GetChild(1).localScale += new Vector3(0, value * 0.01f, 0);
-
-            StartPlayerColorAnim(increase);
-        }
-        else if (player.transform.GetChild(1).localScale.y - value * 0.01f >= 1f)
-        {
-            player.transform.GetChild(1).localScale -= new Vector3(0, value * 0.01f, 0);
-
-            StartPlayerColorAnim(increase);
+            //spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z);
+            //StartPlayerColorAnim(increase);
         }
         else
         {
-            player.transform.GetChild(1).localScale = new Vector3(player.transform.GetChild(1).localScale.x, 1, player.transform.GetChild(1).localScale.z);
-
-            StartPlayerColorAnim(increase);
+            height = defHeight;
 
             Failed();
-        }*/
 
+            //spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z);
+            //StartPlayerColorAnim(increase);
+        }
+        StartCoroutine(HeightAnim(increase, height));
+        StartPlayerColorAnim(increase);
+    }
 
+    IEnumerator HeightAnim(bool inc, float targetY)
+    {
+        if(inc)
+        {
+            while (spine.transform.localPosition.y < targetY)
+            {
+                Vector3 spineTargetPos = new Vector3(spine.transform.localPosition.x, targetY, spine.transform.localPosition.z);
+
+                spine.transform.localPosition = Vector3.MoveTowards(spine.transform.localPosition, spineTargetPos, heightAnimSens);
+
+                yield return new WaitForSeconds(Time.fixedDeltaTime);
+            }
+        }
+        else
+        {
+            while (spine.transform.localPosition.y > targetY)
+            {
+                Vector3 spineTargetPos = new Vector3(spine.transform.localPosition.x, targetY, spine.transform.localPosition.z);
+
+                spine.transform.localPosition = Vector3.MoveTowards(spine.transform.localPosition, spineTargetPos, heightAnimSens);
+
+                yield return new WaitForSeconds(Time.fixedDeltaTime);
+            }
+        }
+    }
+
+    void ReshapePlayer(float a)
+    {
+        float x = a != 0 ? arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) + a*8 : 0;
+        arms.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
+        body.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
+        hips.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
+        legs.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
     }
 
     void StartPlayerColorAnim(bool positive)
@@ -555,14 +448,5 @@ public class GameManager : MonoBehaviour
     public void Restart()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-    void ReshapePlayer(float a)
-    {
-        float x = a != 0 ? arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) + a : 0;
-        arms.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
-        body.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
-        hips.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
-        legs.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, x);
     }
 }
