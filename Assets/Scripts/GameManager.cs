@@ -112,6 +112,7 @@ public class GameManager : MonoBehaviour
     [NonSerialized]
     public DG.Tweening.Sequence jumpTweener;
     public bool controller = true;
+    bool isFinished = false;
 
     Color playerStartColor, playerTargetColor, playerCurrentColor;
     float playerColorElapsedT = 0f;
@@ -162,6 +163,7 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetMouseButton(0) && controller)
         {
+            UpdatePlayerRotationY();
             UpdateDirectorPositionX();
             MovePlayer(true);
         }
@@ -415,8 +417,6 @@ public class GameManager : MonoBehaviour
 
     void UpdateDirectorPositionX()
     {
-        UpdatePlayerRotationY();
-
         if (Input.GetAxis("Mouse X") != 0)
         {
             float mouseX = Input.GetAxis("Mouse X");
@@ -450,7 +450,14 @@ public class GameManager : MonoBehaviour
 
     void UpdatePlayerRotationY()
     {
-        player.transform.LookAt(director.transform.position);
+        if(!isFinished)
+        {
+            player.transform.LookAt(director.transform.position);
+        }
+        else
+        {
+            player.transform.eulerAngles = Vector3.zero;
+        }
     }
 
     void MoveCamera()
@@ -464,6 +471,11 @@ public class GameManager : MonoBehaviour
         controller = false;
         Time.timeScale = 0.5f;
         failPanel.SetActive(true);
+    }
+
+    public void FinishJumped()
+    {
+        isFinished = true;
     }
 
     // Reload the current scene to restart the game
