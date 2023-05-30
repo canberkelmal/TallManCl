@@ -230,8 +230,9 @@ public class GameManager : MonoBehaviour
             ThrowBroken(hitPoint);
         }
 
-        if (spine.transform.position.y-(damage * heigthCons) >= defHeight)
+        if (spine.transform.localPosition.y-(damage * heigthCons) >= defHeight)
         {
+            //print(spine.transform.position.y - (damage * heigthCons) + "--" + defHeight);
             ChangePlayerHeight(false, damage);
         }
         else
@@ -284,25 +285,16 @@ public class GameManager : MonoBehaviour
         if (increase)
         {
             width += value * widthCons;
-            ReshapePlayer(value);
-
-            StartPlayerColorAnim(increase);
         }
-        else if (arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) - value * 0.01f >= defScale)
+        else if (arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) - value * widthCons >= defScale)
         {
             width -= value * widthCons;
-
-            //ReshapePlayer(-value);
-            //StartPlayerColorAnim(increase);
         }
         else
         {
             width = defScale;
 
             Failed();
-
-            //ReshapePlayer(-30);
-            //StartPlayerColorAnim(increase);
         }
 
         StartCoroutine(WidthAnim(increase, width));
@@ -330,7 +322,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            while (arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) < targetK)
+            while (arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) > targetK)
             {
                 float tempKey = Mathf.MoveTowards(arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0), targetK, widthAnimSens * Time.deltaTime);
                 ReshapePlayer(tempKey);
@@ -348,7 +340,7 @@ public class GameManager : MonoBehaviour
             //spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z);
             //StartPlayerColorAnim(increase);
         }
-        else if (spine.transform.position.y - value * heigthCons >= defHeight)
+        else if (spine.transform.localPosition.y - value * heigthCons >= defHeight)
         {
             height -= value * heigthCons;
 
@@ -469,9 +461,9 @@ public class GameManager : MonoBehaviour
 
     void Failed()
     {
-        //controller = false;
-        //Time.timeScale = 0.5f;
-        //failPanel.SetActive(true);
+        controller = false;
+        Time.timeScale = 0.5f;
+        failPanel.SetActive(true);
     }
 
     // Reload the current scene to restart the game
