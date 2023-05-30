@@ -3651,12 +3651,13 @@ MonoBehaviour:
   playerMainColor: {r: 1, g: 0.54901963, b: 0, a: 1}
   brokenPartForce: 7
   obsMiniHitForce: 15
-  heightAnimSens: 0.08
-  widthAnimSens: 1
+  heightAnimSens: 1
+  widthAnimSens: 400
   doorSlideSens: 0.5
   controller: 1
   thicknessShapeKey: 0
   height: 0
+  width: 0
 --- !u!4 &614865626
 Transform:
   m_ObjectHideFlags: 0
