@@ -1,12 +1,18 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ObsMini : MonoBehaviour
 {    
     public float damage = 50;
     public bool finishObs = false;
+
+    public RawImage UIObj1, UIObj2;
+    public float colorAnimSens = 0.4f;
+    Color UIColor;
 
     GameManager gM;
     bool isHit = false;
@@ -26,7 +32,20 @@ public class ObsMini : MonoBehaviour
             Hit(collision.gameObject);
 
             ChangeLayerRecursively(gameObject.transform, "ObsMini");
+
+            if(finishObs)
+            {
+                UIColor = UIObj1.color;
+                UIObj1.DOColor(Color.white, colorAnimSens).OnComplete(SetColorBack);
+                UIObj2.DOColor(Color.white, colorAnimSens);
+            }
         }
+    }
+
+    void SetColorBack()
+    {
+        UIObj1.DOColor(UIColor, colorAnimSens);
+        UIObj2.DOColor(UIColor, colorAnimSens);
     }
 
     void Hit(GameObject player)

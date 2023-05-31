@@ -137,7 +137,7 @@ public class GameManager : MonoBehaviour
     public float thicknessShapeKey = 0;
     public float height = 0;
     public float width = 0;
-    float defHeight, defScale;
+    public float defHeight, defScale;
 
     Vector3 newCamOffset;
 
@@ -146,11 +146,11 @@ public class GameManager : MonoBehaviour
     {
         height = spine.transform.localPosition.y;
         width = arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0);
-        defHeight = height;
+        defHeight = -0.4f;
         defScale = width;
 
         failPanel.SetActive(false);
-        Time.timeScale = 1f;
+        //Time.timeScale = 1f;
 
         directorOffsY = player.transform.position.y - director.transform.position.y;
 
@@ -246,6 +246,10 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            height = defHeight;
+            StartCoroutine(HeightAnim(false, height));
+            StartPlayerColorAnim(false);
+
             ChangePlayerWidth(false, damage);
         }
     }
@@ -257,7 +261,7 @@ public class GameManager : MonoBehaviour
 
         GameObject brokenPart = Instantiate(brokenCyl, spawnPoint, Quaternion.identity);
 
-        float r = arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) > 0 ? arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) * 0.00125f : 0.25f;
+        float r = arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) > 0 ? arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) * 0.003118f : 0.25f;
 
         brokenPart.transform.localScale = new Vector3(r, brokenPart.transform.localScale.y, r);
 
@@ -345,26 +349,18 @@ public class GameManager : MonoBehaviour
         if (increase)
         {
             height += value * heigthCons;
-
-            //spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z);
-            //StartPlayerColorAnim(increase);
         }
         else if (spine.transform.localPosition.y - value * heigthCons >= defHeight)
         {
             height -= value * heigthCons;
-
-            //spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z);
-            //StartPlayerColorAnim(increase);
         }
         else
         {
             height = defHeight;
 
             Failed();
-
-            //spine.transform.localPosition = new Vector3(spine.transform.localPosition.x, height, spine.transform.localPosition.z);
-            //StartPlayerColorAnim(increase);
         }
+
         StartCoroutine(HeightAnim(increase, height));
         StartPlayerColorAnim(increase);
     }
@@ -476,20 +472,33 @@ public class GameManager : MonoBehaviour
     void Failed()
     {
         controller = false;
-        Time.timeScale = 0.5f;
-        failPanel.SetActive(true);
+        //Time.timeScale = 0.5f;
+
+        if(isFinished)
+        {
+
+        }
+        else
+        {
+            failPanel.SetActive(true);
+        }
     }
 
     public void FinishJumped()
     {
         isFinished = true;
-        SetCameraPositionToFinish(); //INVOKE OLACAK!!!!!--!!--!!--!!
+        InvokeRepeating("SetCameraPositionToFinish", 0, Time.deltaTime);
     }
 
     void SetCameraPositionToFinish()
     {
         camOffset = Vector3.MoveTowards(camOffset, newCamOffset, cameraFinalPosSens * Time.deltaTime);
-        cam.transform.rotation = Quaternion.RotateTowards(cam.transform.rotation, Quaternion.Euler(20, -10.85f, 0), cameraFinalPosSens * Time.deltaTime);
+        cam.transform.LookAt(player.transform.position);
+
+        if(camOffset == newCamOffset)
+        {
+            CancelInvoke("SetCameraPositionToFinish");
+        }
     }
 
     // Reload the current scene to restart the game

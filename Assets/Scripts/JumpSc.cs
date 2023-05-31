@@ -20,6 +20,7 @@ public class JumpSc : MonoBehaviour
         {
             isJumped = true;
             gM.JumpPlayerTo(transform.parent.GetChild(1).position, jumpDur);
+
             if(endJump)
             {
                 gM.FinishJumped();
