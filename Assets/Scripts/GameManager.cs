@@ -300,7 +300,7 @@ public class GameManager : MonoBehaviour
 
         controller = false;
         playerCurrentSpeed = 0;
-        player.transform.rotation = Quaternion.identity;
+        player.transform.rotation = Quaternion.Euler(Vector3.zero);
 
         jumpPoint.y = player.transform.position.y+ 0.01f;
 
