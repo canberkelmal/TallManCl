@@ -67,6 +67,9 @@ public class GameManager : MonoBehaviour
     [TabGroup("Objects")]
     [SceneObjectsOnly]
     public GameObject failPanel;
+    [TabGroup("Objects")]
+    [SceneObjectsOnly]
+    public GameObject finishPanel;
 
     [Title("Materials")]
     [TabGroup("Objects")]
@@ -111,15 +114,22 @@ public class GameManager : MonoBehaviour
     [TabGroup("Animations")]
     public float cameraFinalPosSens = 1f;
     [TabGroup("Animations")]
-    public float cameraFinalYOffs = 5f;
+    public float cameraFinalYOffs = 4f;
 
-    int diaCount;
+    [Title("Bonus poin animation")]
+    [TabGroup("Animations")]
+    public float bonusAnimDuration = 1f;
+
+    int diaCount, finalDiaCount;
+    float finalMultiplier = 1f;
     Vector3 diaFrameDefScale;
 
     [NonSerialized]
     public DG.Tweening.Sequence jumpTweener;
     public bool controller = true;
     bool isFinished = false;
+
+    float bonusAnimElapsedT = 0f;    
 
     Color playerStartColor, playerTargetColor, playerCurrentColor;
     float playerColorElapsedT = 0f;
@@ -151,6 +161,7 @@ public class GameManager : MonoBehaviour
         width = arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0);
         defHeight = -0.4f;
         defScale = width;
+        finalDiaCount = 0;
 
         failPanel.SetActive(false);
         //Time.timeScale = 1f;
@@ -218,14 +229,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void TakeDiamond(Vector3 diaPos)
+    public void TakeDiamond(Vector3 diaPos, bool isFinal)
     {
-        diaCount++;
-        PlayerPrefs.SetInt("diaCount", diaCount);
-
+        finalDiaCount += isFinal ? 1 : 0;
+        IncreaseDiamondCount();
         GameObject takeEffect = Instantiate(takeDiaParticle, diaPos, Quaternion.identity);
         Destroy(takeEffect, 1f);
         
+    }
+    void IncreaseDiamondCount()
+    {
+        diaCount++;
+        PlayerPrefs.SetInt("diaCount", diaCount);
         diaFrame.transform.GetChild(1).GetComponent<Text>().text = diaCount.ToString();
 
         diaFrame.transform.DOScale(diaFrameDefScale * 1.5f, 0.15f).OnComplete(SetDiaFrameScaleDef);
@@ -233,6 +248,11 @@ public class GameManager : MonoBehaviour
     void SetDiaFrameScaleDef()
     {
         diaFrame.transform.DOScale(diaFrameDefScale, 0.15f);
+    }
+
+    public void SetFinalMultiplier(float multiplier)
+    {
+        finalMultiplier = multiplier;
     }
 
     public void HitPlayerAt(Vector3 hitPoint, float damage, bool brokePart)
@@ -352,10 +372,12 @@ public class GameManager : MonoBehaviour
         if (increase)
         {
             height += value * heigthCons;
+            SetPlayerCollider(value * heigthCons);
         }
         else if (spine.transform.localPosition.y - value * heigthCons >= defHeight)
         {
             height -= value * heigthCons;
+            SetPlayerCollider(-value * heigthCons);
         }
         else
         {
@@ -366,6 +388,12 @@ public class GameManager : MonoBehaviour
 
         StartCoroutine(HeightAnim(increase, height));
         StartPlayerColorAnim(increase);
+    }
+
+    void SetPlayerCollider(float addValue)
+    {
+        player.GetComponent<CapsuleCollider>().height += addValue;
+        player.GetComponent<CapsuleCollider>().center += Vector3.up * addValue/2;
     }
 
     IEnumerator HeightAnim(bool inc, float targetY)
@@ -479,11 +507,29 @@ public class GameManager : MonoBehaviour
 
         if(isFinished)
         {
-
+            finishPanel.SetActive(true);
+            InvokeRepeating("BonusAnim", 0, Time.fixedDeltaTime);
         }
         else
         {
             failPanel.SetActive(true);
+        }
+    }
+
+    void BonusAnim()
+    {
+        int bonusPoint = (int)(finalDiaCount * finalMultiplier);
+        bonusAnimElapsedT += Time.deltaTime;
+
+        if (bonusAnimElapsedT < bonusAnimDuration)
+        {
+            float newValue = Mathf.Lerp(0, bonusPoint, bonusAnimElapsedT / bonusAnimDuration);
+            finishPanel.transform.GetChild(3).GetComponent<Text>().text = ((int)newValue).ToString();
+        }
+        else
+        {
+            finishPanel.transform.GetChild(3).GetComponent<Text>().text = bonusPoint.ToString();
+            CancelInvoke("BonusAnim");
         }
     }
 

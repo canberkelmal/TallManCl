@@ -5,6 +5,7 @@ using UnityEngine;
 public class DiamondSc : MonoBehaviour
 {
     GameManager gM;
+    public bool finalDia = false;
     void Awake()
     {
         gM = GameObject.Find("Game Manager").GetComponent<GameManager>();
@@ -14,7 +15,8 @@ public class DiamondSc : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            gM.TakeDiamond(transform.position);
+            gM.TakeDiamond(transform.position, finalDia);
+
             Destroy(gameObject);
         }
     }
