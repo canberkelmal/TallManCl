@@ -106,6 +106,10 @@ public class GameManager : MonoBehaviour
     [TabGroup("Animations")]
     public float doorSlideSens = 1f;
 
+    [Title("Camera")]
+    [TabGroup("Animations")]
+    public float cameraFinalPosSens = 1f;
+
     int diaCount;
     Vector3 diaFrameDefScale;
 
@@ -135,6 +139,8 @@ public class GameManager : MonoBehaviour
     public float width = 0;
     float defHeight, defScale;
 
+    Vector3 newCamOffset;
+
 
     void Start()
     {
@@ -152,6 +158,7 @@ public class GameManager : MonoBehaviour
         playerStartColor = playerMainColor;
 
         camOffset = player.transform.position - cam.transform.position;
+        newCamOffset = new Vector3(camOffset.x - 2.7f, camOffset.y, camOffset.z);
 
         diaCount = PlayerPrefs.GetInt("diaCount", 0);
         diaFrame.transform.GetChild(1).GetComponent<Text>().text = diaCount.ToString();
@@ -476,6 +483,13 @@ public class GameManager : MonoBehaviour
     public void FinishJumped()
     {
         isFinished = true;
+        SetCameraPositionToFinish(); //INVOKE OLACAK!!!!!--!!--!!--!!
+    }
+
+    void SetCameraPositionToFinish()
+    {
+        camOffset = Vector3.MoveTowards(camOffset, newCamOffset, cameraFinalPosSens * Time.deltaTime);
+        cam.transform.rotation = Quaternion.RotateTowards(cam.transform.rotation, Quaternion.Euler(20, -10.85f, 0), cameraFinalPosSens * Time.deltaTime);
     }
 
     // Reload the current scene to restart the game

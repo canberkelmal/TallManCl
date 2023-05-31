@@ -6,6 +6,7 @@ public class JumpSc : MonoBehaviour
 {
     GameManager gM;
     bool isJumped = false;
+    public bool endJump = false;
 
     public float jumpDur = 2.5f;
     void Awake()
@@ -19,10 +20,10 @@ public class JumpSc : MonoBehaviour
         {
             isJumped = true;
             gM.JumpPlayerTo(transform.parent.GetChild(1).position, jumpDur);
-
-            //gM.StartJump(transform.parent.GetChild(1).position, jumpDur);
-
-            //Destroy(gameObject);
+            if(endJump)
+            {
+                gM.FinishJumped();
+            }
         }
     }
 }

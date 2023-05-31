@@ -13,7 +13,6 @@ public class FinishLineSc : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            gM.FinishJumped();
             transform.GetChild(0).gameObject.SetActive(true);
         }
     }
