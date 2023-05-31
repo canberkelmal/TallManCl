@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using System;
 using static UnityEngine.Rendering.DebugUI;
 using static UnityEngine.GraphicsBuffer;
+using Unity.Mathematics;
 
 public class GameManager : MonoBehaviour
 {
@@ -109,6 +110,8 @@ public class GameManager : MonoBehaviour
     [Title("Camera")]
     [TabGroup("Animations")]
     public float cameraFinalPosSens = 1f;
+    [TabGroup("Animations")]
+    public float cameraFinalYOffs = 5f;
 
     int diaCount;
     Vector3 diaFrameDefScale;
@@ -493,7 +496,7 @@ public class GameManager : MonoBehaviour
     void SetCameraPositionToFinish()
     {
         camOffset = Vector3.MoveTowards(camOffset, newCamOffset, cameraFinalPosSens * Time.deltaTime);
-        cam.transform.LookAt(player.transform.position);
+        cam.transform.LookAt(player.transform.position + Vector3.up * cameraFinalYOffs);
 
         if(camOffset == newCamOffset)
         {
