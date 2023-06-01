@@ -14,6 +14,8 @@ public class GameManager : MonoBehaviour
 {
     [Title("Movement")]
     [TabGroup("GamePlay")]
+    public bool controller = true;
+    [TabGroup("GamePlay")]
     public float playerMoveSens = 1f;
     [TabGroup("GamePlay")]
     public float playerMaxSpeed = 1f;
@@ -130,7 +132,6 @@ public class GameManager : MonoBehaviour
 
     [NonSerialized]
     public DG.Tweening.Sequence jumpTweener;
-    public bool controller = true;
     bool isFinished = false;
 
     float bonusAnimElapsedT = 0f;    
@@ -149,7 +150,6 @@ public class GameManager : MonoBehaviour
     public float jumpStartTime;
     [NonSerialized]
     public float jumpDuration = 2f;
-    float startYPos, targetYPos, targetZPos, startZPos;
 
     public float thicknessShapeKey = 0;
     public float height = 0;
@@ -157,8 +157,6 @@ public class GameManager : MonoBehaviour
     public float defHeight, defScale;
 
     Vector3 newCamOffset;
-
-    bool isRunning = false;
 
     void Start()
     {
@@ -169,7 +167,6 @@ public class GameManager : MonoBehaviour
         finalDiaCount = 0;
 
         failPanel.SetActive(false);
-        //Time.timeScale = 1f;
 
         directorOffsY = player.transform.position.y - director.transform.position.y;
 
@@ -237,10 +234,11 @@ public class GameManager : MonoBehaviour
     public void TakeDiamond(Vector3 diaPos, bool isFinal)
     {
         finalDiaCount += isFinal ? 1 : 0;
+
         IncreaseDiamondCount();
         GameObject takeEffect = Instantiate(takeDiaParticle, diaPos, Quaternion.identity);
-        Destroy(takeEffect, 1f);
-        
+
+        Destroy(takeEffect, 1f);        
     }
     void IncreaseDiamondCount()
     {
@@ -249,10 +247,11 @@ public class GameManager : MonoBehaviour
         diaFrame.transform.GetChild(1).GetComponent<Text>().text = diaCount.ToString();
 
         diaFrame.transform.DOScale(diaFrameDefScale * 1.5f, 0.15f).OnComplete(SetDiaFrameScaleDef);
-    }
-    void SetDiaFrameScaleDef()
-    {
-        diaFrame.transform.DOScale(diaFrameDefScale, 0.15f);
+
+        void SetDiaFrameScaleDef()
+        {
+            diaFrame.transform.DOScale(diaFrameDefScale, 0.15f);
+        }
     }
 
     public void SetFinalMultiplier(float multiplier)
@@ -269,7 +268,6 @@ public class GameManager : MonoBehaviour
 
         if (spine.transform.localPosition.y-(damage * heigthCons) >= defHeight)
         {
-            //print(spine.transform.position.y - (damage * heigthCons) + "--" + defHeight);
             ChangePlayerHeight(false, damage);
         }
         else
@@ -280,23 +278,23 @@ public class GameManager : MonoBehaviour
 
             ChangePlayerWidth(false, damage);
         }
-    }
 
-    void ThrowBroken(Vector3 spawnPoint)
-    {
-        spawnPoint.x = player.transform.position.x;
-        spawnPoint.z = player.transform.position.z;
+        void ThrowBroken(Vector3 spawnPoint)
+        {
+            spawnPoint.x = player.transform.position.x;
+            spawnPoint.z = player.transform.position.z;
 
-        GameObject brokenPart = Instantiate(brokenCyl, spawnPoint, Quaternion.identity);
+            GameObject brokenPart = Instantiate(brokenCyl, spawnPoint, Quaternion.identity);
 
-        float r = arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) > 0 ? arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) * 0.003118f : 0.25f;
+            float r = arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) > 0 ? arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) * 0.003118f : 0.25f;
 
-        brokenPart.transform.localScale = new Vector3(r, brokenPart.transform.localScale.y, r);
+            brokenPart.transform.localScale = new Vector3(r, brokenPart.transform.localScale.y, r);
 
-        brokenPart.AddComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
-        brokenPart.transform.DORotate(new Vector3(179f, 0, 179f), 3.0f);
+            brokenPart.AddComponent<Rigidbody>().AddForce(-Vector3.forward * brokenPartForce, ForceMode.Impulse);
+            brokenPart.transform.DORotate(new Vector3(179f, 0, 179f), 3.0f);
 
-        Destroy(brokenPart, 3f);
+            Destroy(brokenPart, 3f);
+        }
     }
 
     public void JumpPlayerTo(Vector3 jumpPoint, float dur)
@@ -337,37 +335,36 @@ public class GameManager : MonoBehaviour
 
             Failed();
         }
+        StartPlayerColorAnim(increase);
 
         StartCoroutine(WidthAnim(increase, width));
-
-        StartPlayerColorAnim(increase);
-    }
-
-    void ReshapePlayer(float key)
-    {
-        arms.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, key);
-        body.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, key);
-        hips.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, key);
-        legs.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, key);
-    }
-    IEnumerator WidthAnim(bool inc, float targetK)
-    {
-        if (inc)
+        IEnumerator WidthAnim(bool inc, float targetK)
         {
-            while (arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) < targetK)
+            if (inc)
             {
-                float tempKey = Mathf.MoveTowards(arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0), targetK, widthAnimSens * Time.deltaTime);
-                ReshapePlayer(tempKey);
-                yield return null;
+                while (arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) < targetK)
+                {
+                    float tempKey = Mathf.MoveTowards(arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0), targetK, widthAnimSens * Time.deltaTime);
+                    ReshapePlayer(tempKey);
+                    yield return null;
+                }
             }
-        }
-        else
-        {
-            while (arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) > targetK)
+            else
             {
-                float tempKey = Mathf.MoveTowards(arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0), targetK, widthAnimSens * Time.deltaTime);
-                ReshapePlayer(tempKey);
-                yield return null;
+                while (arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0) > targetK)
+                {
+                    float tempKey = Mathf.MoveTowards(arms.GetComponent<SkinnedMeshRenderer>().GetBlendShapeWeight(0), targetK, widthAnimSens * Time.deltaTime);
+                    ReshapePlayer(tempKey);
+                    yield return null;
+                }
+            }
+
+            void ReshapePlayer(float key)
+            {
+                arms.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, key);
+                body.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, key);
+                hips.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, key);
+                legs.GetComponent<SkinnedMeshRenderer>().SetBlendShapeWeight(0, key);
             }
         }
     }
@@ -393,12 +390,12 @@ public class GameManager : MonoBehaviour
 
         StartCoroutine(HeightAnim(increase, height));
         StartPlayerColorAnim(increase);
-    }
 
-    void SetPlayerCollider(float addValue)
-    {
-        player.GetComponent<CapsuleCollider>().height += addValue;
-        player.GetComponent<CapsuleCollider>().center += Vector3.up * addValue/2;
+        void SetPlayerCollider(float addValue)
+        {
+            player.GetComponent<CapsuleCollider>().height += addValue;
+            player.GetComponent<CapsuleCollider>().center += Vector3.up * addValue / 2;
+        }
     }
 
     IEnumerator HeightAnim(bool inc, float targetY)
@@ -508,7 +505,6 @@ public class GameManager : MonoBehaviour
     void Failed()
     {
         controller = false;
-        //Time.timeScale = 0.5f;
 
         if(isFinished)
         {
