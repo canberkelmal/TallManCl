@@ -90,6 +90,10 @@ public class GameManager : MonoBehaviour
     public GameObject finishConfettis;
 
 
+    [Title("Player animator")]
+    [TabGroup("Animations")]
+    public Animator playerAnimator;
+
     [Title("Player color change")]
     [TabGroup("Animations")]
     public float playerColorAnimDur = 0.5f;
@@ -154,6 +158,7 @@ public class GameManager : MonoBehaviour
 
     Vector3 newCamOffset;
 
+    bool isRunning = false;
 
     void Start()
     {
@@ -547,6 +552,22 @@ public class GameManager : MonoBehaviour
         if(camOffset == newCamOffset)
         {
             CancelInvoke("SetCameraPositionToFinish");
+        }
+    }
+
+    void AnimatorController(int action)
+    {
+        switch (action)
+        {
+            case 0: // idle
+                playerAnimator.SetTrigger("Idle");
+                break;
+            case 1: // drop 
+                playerAnimator.SetTrigger("Drop");
+                break;
+            case 2: // run 
+                playerAnimator.SetTrigger("Run");
+                break;
         }
     }
 
